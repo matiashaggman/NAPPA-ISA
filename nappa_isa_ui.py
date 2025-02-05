@@ -17,17 +17,18 @@ from PyQt5.QtGui import QIcon
 
 from nappa_gui.main_window_ui import Ui_NappaDialog
 
-from nappa_main import nappa_analysis, load_data, detect_wear, detect_wear_blocks
-
+from nappa_isa_main import nappa_analysis, load_data, detect_wear, detect_wear_blocks
+from nappa.update import check_for_update, do_update
 
 tempfolder = tempfile.gettempdir() + '\\NAPPA-ISA'
 
-# Separate thread runner for the 'nappa_analysis' function.
+CURRENT_VERSION = 1.0
+
+# Separate thread runner for various functions.
 # This is used to prevent the main window from freezing when running analysis.
 class Worker(QThread):
-    
-    analysis_finished = pyqtSignal(str)
     status_update = pyqtSignal(str)
+    analysis_finished = pyqtSignal(str)
     import_finished = pyqtSignal(object) 
 
     def __init__(self, recording=None, input_file=None, output_file=None, options=None, call_type=None):
@@ -64,7 +65,6 @@ class Worker(QThread):
             self.analysis_finished.emit(self.output_file)
 
         elif self.call_type == 'import':
-
             try:
                 if os.path.isdir(tempfolder):
                     rmtree(tempfolder)
@@ -79,7 +79,6 @@ class Worker(QThread):
                 return
             sleepRecording = load_data(tempfolder)
             self.import_finished.emit(sleepRecording)
-
         return
 
 class TimeDateGridWindow(QDialog):
@@ -138,6 +137,13 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
     def __init__(self):
         super().__init__()
 
+        if check_for_update(CURRENT_VERSION, status_callback=self.status_callback):
+            reply = QMessageBox.question(None, 'Update found', 'An updated version of the software was found. Do you want to download and install?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                do_update(CURRENT_VERSION)
+            else:
+                return
+                
         self.sleepRecording = None
         self.sleepPeriods = []
 
@@ -153,6 +159,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.options = load_options('options.json')
         self.initOptions()
 
+        self.worker = Worker(call_type='check_for_update')  
+        self.worker.start()
         return
 
     def initUI(self):
@@ -169,6 +177,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_7.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.versionLabel.setText(f'version: {CURRENT_VERSION}')
         return
 
     def pageGenerationManualButtonToggled(self):
@@ -185,8 +195,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         try:
             with open('options.json', 'w') as json_file:
                 json.dump(self.options, json_file, indent=4)
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save options: {str(e)}")
 
         # Clean up tmp dir:
         if os.path.isdir(tempfolder):
@@ -265,7 +275,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         
         self.pageGenerationAutomaticButton.setChecked(self.options['page_generation_automatic'])
         self.pageGenerationManualButton.setChecked(self.options['page_generation_automatic'] == False)
-        self.selectPeriodsButton.setEnabled(self.options['page_generation_automatic'] == False)
+        self.selectPeriodsButton.setEnabled(self.pageGenerationManualButton.isChecked())
+        #self.selectPeriodsButton.setEnabled(self.options['page_generation_automatic'] == False)
 
         self.sdtConfidenceSummaryBox.setChecked(self.options['plots']['sdt_ci'])
         self.sdtSummaryBox.setChecked(self.options['plots']['sdt'])
@@ -380,8 +391,6 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         return
 
     def onAnalysisComplete(self, output_file):
-        # if os.path.isdir(tempfolder):
-        #     rmtree(tempfolder)
     
         self.setWindowTitle("NAPPA Infant Sleep Analyzer")
         QMessageBox.information(self, "Analysis Complete", f"Output saved to {output_file}.")
