@@ -19,7 +19,7 @@ NAPPA Infant Sleep Analyzer (ISA) is a tool designed to analyze infant sleep pat
   <img 
     src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/example_report.png?raw=true" 
     alt="UI screenshot" 
-    width="400" 
+    width="300" 
   />
   
   ## Installation
