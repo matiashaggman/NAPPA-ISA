@@ -1,0 +1,31 @@
+{
+    "plots": {
+        "sdt": true,
+        "activity": true,
+        "respiration_rate": true,
+        "position": true,
+        "sdt_ci": false,
+        "donut": true,
+        "summary_fig": "bar",
+        "subsequent_sdt": true,
+        "subsequent_activity": true,
+        "subsequent_respiration_rate": true,
+        "subsequent_position": true
+    },
+    "time_offset": 2,
+    "median_filter": true,
+    "filter_window": 19,
+    "filter_nonwear": true,
+    "csv_output": true,
+    "pdf_output": true,
+    "report_dpi": 100,
+    "log_scale": true,
+    "date_style": 0,
+    "x_ticks": 8,
+    "full_features": true,
+    "multipage": true,
+    "page_generation_automatic": false,
+    "sleep_periods": [],
+    "start_time": "",
+    "end_time": ""
+}
