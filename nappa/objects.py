@@ -15,14 +15,13 @@ class SleepRecording:
         Initialize a SleepRecording object.
 
         Args:
-          features (np.ndarray): Sensor data representing the features extracted from the sleep recording.
-          labels (np.ndarray): The labels corresponding to each epoch in the sleep recording.
+          features (pd.Dataframe or torch.Tensor): Sensor data representing the features extracted from the sleep recording.
+          labels (pd.Dataframe or torch.Tensor, optional): The labels corresponding to each epoch in the sleep recording.
           id (int, optional): A unique identifier for the subject of the sleep recording.
           age (int, optional): The age of the subject in months.
           timestamps (np.ndarray, optional): Timestamps corresponding to each epoch in the sleep recording.
           sampling_interval (float, optional): The time interval between data points in the recording.
         """
-        self.mode = 'default'
         self.id = id
         self.clinical_id = clinical_id
         self.serial_number = serial_number
@@ -32,18 +31,17 @@ class SleepRecording:
         self.timestamps = timestamps
         self.comments = comments
         self.sampling_interval = sampling_interval
-        
+
         if type(features.index) == pd.DatetimeIndex:
             self.timestamps = self.features.index
             self.start = features.index[0]
             self.end = features.index[-1]
             self.duration = self.end - self.start
+            self.mode = 'default'  
         else:
-            #self.timestamps = np.arange(start=0, stop=self.features.shape[0], step=30)
             self.timestamps = np.arange(start=0, stop=self.features.shape[0]*30, step=30)
+            self.mode = 'torch'
 
-            # Convert steps into timestamps (hh:mm:ss format)
-            #self.timestamps = [str(timedelta(seconds=step)) for step in self.timestamps]
         return
     def __str__(self) -> str:
         ret = [
@@ -74,7 +72,7 @@ class NappaDataset(Dataset):
             If str, should be the path to a pickled file of the dataset.
         """
         self.normalization = None
-        self.mode = 'default'
+        
         self.recordings = []
 
         if all(isinstance(item, SleepRecording) for item in data):
@@ -85,7 +83,11 @@ class NappaDataset(Dataset):
             self.__dict__.update(obj.__dict__)
         else:
             raise ValueError("Data must be a list of SleepRecording instances or a path to a pickled NappaDataset object.")
-        
+
+        if type(self.recordings[0].features) == torch.Tensor:
+            self.mode = 'torch'
+        else:
+            self.mode = 'default'
         return None
 
     @property
@@ -93,17 +95,17 @@ class NappaDataset(Dataset):
         """
         Returns a concatenated numpy array of features from all SleepRecording objects in the dataset.
         """
-        if self.mode == 'train':
+        if self.mode == 'torch':
             return torch.cat([rec.features for rec in self.recordings], dim=0)
         else:
-            return  pd.concat([rec.features for rec in self.recordings], axis=0)
+            return pd.concat([rec.features for rec in self.recordings], axis=0)
 
     @property
     def labels(self):
         """
         Returns a concatenated numpy array of labels from all SleepRecording objects in the dataset.
         """
-        if self.mode == 'train':
+        if self.mode == 'torch':
             return torch.cat([rec.labels for rec in self.recordings], dim=0)
         else:
             return pd.concat([rec.labels for rec in self.recordings], axis=0)
@@ -122,15 +124,16 @@ class NappaDataset(Dataset):
         """
         return np.array([rec.age for rec in self.recordings])
 
-    def train(self):
+    def to_torch(self):
         """
         Set the dataset to training mode by converting data to torch.tensors.
         """
-        self.mode = 'train'
+        self.mode = 'torch'
         for rec in self.recordings:
-            rec.mode = 'train'
-            rec.features = torch.tensor(rec.features.to_numpy(), dtype=torch.float32)
-            rec.labels = torch.tensor(rec.labels.to_numpy(), dtype=torch.long)
+            rec.mode = 'torch'
+            if type(rec.features) == pd.DataFrame:
+                rec.features = torch.tensor(rec.features.to_numpy(), dtype=torch.float32)
+                rec.labels = torch.tensor(rec.labels.to_numpy(), dtype=torch.long)
         return self
 
     def save(self, filename: str):
@@ -146,9 +149,9 @@ class NappaDataset(Dataset):
         else:
             raise ValueError("Unsupported file format. Use .pkl for saving.")
 
-    def selectFeatures(self, indices: list):
+    def selectFeatures(self, features: list):
         """
-        Select a subset of features from the dataset based on a list of indices.
+        Select a subset of features from the dataset based on a list of indices (or feature names).
 
         Args:
           indices (list): The indices of the features to select.
@@ -156,8 +159,16 @@ class NappaDataset(Dataset):
         Returns:
           NappaDataset: The dataset with the selected features.
         """
-        for rec in self.recordings:
-            rec.features = rec.features.iloc[:, indices]
+        if self.mode == 'torch':
+            for rec in self.recordings:
+                rec.features = rec.features[:, features]
+        else:
+            if type(features[0]) == int:
+                for rec in self.recordings:
+                    rec.features = rec.features.iloc[:, features]
+            elif type(features[0]) == str:
+                for rec in self.recordings:
+                    rec.features = rec.features.loc[:, features]
         return self
 
     def setSubjectAges(self, ages: dict):
@@ -187,7 +198,7 @@ class NappaDataset(Dataset):
         Returns:
         NappaDataset: The dataset with numeric labels.
         """
-        if not self.mode == 'train':
+        if not self.mode == 'torch':
             for rec in self.recordings:
                 rec.labels = rec.labels.replace(mapping)
                 rec.labels = rec.labels.infer_objects(copy=False)
@@ -265,5 +276,7 @@ class NappaDataset(Dataset):
             f'Number of sleep recordings: {len(self)}\n',
             f'Subject age range: {np.min(self.ages)} - {np.max(self.ages)} (months) \n' if None not in self.ages  else '',
             f'Number of data points: {self.features.shape[0]}\n',
+            f'Number of features: {self.features.shape[1]}\n',
+            f'Mode: {self.mode}\n',
             f'Normalization: {self.normalization}\n']
         return ''.join(ret)

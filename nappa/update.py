@@ -104,6 +104,40 @@ def read_file_versions(repo_url=REPO_URL, commits_url=COMMITS_URL):
     return result
 
 
+def download_directory_contents(
+        main_directories_and_versions,
+        files_in_directories,
+        current_version
+    ):
+
+    success = True
+
+    # Download directories & contents if version is newer
+    for folder, version in main_directories_and_versions.items():
+        if version > current_version:
+            # Download each file in that folder
+            for fname in files_in_directories.get(folder, []):
+                file_url = f"{BASE_URL}/{folder}/{fname}"
+                path_to_save = os.path.join(folder, fname)
+
+                # Make sure parent folder exists
+                os.makedirs(os.path.dirname(path_to_save), exist_ok=True)
+
+                resp = requests.get(file_url)
+                if resp.status_code == 200:
+                    try:
+                        with open(path_to_save, 'wb') as f:
+                            f.write(resp.content)
+                    except IOError:
+                        logger.error(f"Failed to write file: {path_to_save}")
+                        success = False
+                else:
+                    logger.error(f"Failed to download file: {file_url} (status={resp.status_code})")
+                    success = False
+                    
+    return success
+
+
 def download_files_if_newer(
     main_files_and_versions,
     main_directories_and_versions,
@@ -219,6 +253,58 @@ def do_update(current_version, status_callback=None):
         msg = ('Update failed. Please visit https://github.com/OWNER/REPO '
                'and download the latest files manually.')
 
+    if status_callback:
+        status_callback(msg)
+    logger.info(msg)
+    return success
+
+
+def update(current_version, status_callback=None):
+    """
+    Downloads files from the repo into a 'dist' folder if a newer version is found.
+    Returns True if successful, False otherwise.
+    """
+    files_in_directories, main_directories_and_versions, main_files_and_versions = get_files_and_versions()
+    success = True
+
+    # Download directories & contents if version is newer
+    for folder, version in main_directories_and_versions.items():
+        if version > current_version:
+            for fname in files_in_directories.get(folder, []):
+                file_url = f"{BASE_URL}/{folder}/{fname}"
+                path_to_save = os.path.join("dist", folder, fname)
+                os.makedirs(os.path.dirname(path_to_save), exist_ok=True)
+                resp = requests.get(file_url)
+                if resp.status_code == 200:
+                    try:
+                        with open(path_to_save, 'wb') as f:
+                            f.write(resp.content)
+                    except IOError:
+                        logger.error(f"Failed to write file: {path_to_save}")
+                        success = False
+                else:
+                    logger.error(f"Failed to download file: {file_url} (status={resp.status_code})")
+                    success = False
+
+    # Download individual files if version is newer
+    for fname, version in main_files_and_versions.items():
+        if version > current_version:
+            file_url = f"{BASE_URL}/{fname}"
+            path_to_save = os.path.join("dist", fname)
+            os.makedirs(os.path.dirname(path_to_save), exist_ok=True)
+            resp = requests.get(file_url)
+            if resp.status_code == 200:
+                try:
+                    with open(path_to_save, 'wb') as f:
+                        f.write(resp.content)
+                except IOError:
+                    logger.error(f"Failed to write file: {path_to_save}")
+                    success = False
+            else:
+                logger.error(f"Failed to download file: {file_url} (status={resp.status_code})")
+                success = False
+
+    msg = "Update downloaded successfully." if success else "Update failed."
     if status_callback:
         status_callback(msg)
     logger.info(msg)

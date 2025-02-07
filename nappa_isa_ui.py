@@ -140,12 +140,12 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
     def __init__(self):
         super().__init__()
 
-        if check_for_update(CURRENT_VERSION):
-            reply = QMessageBox.question(None, 'Update found', 'An updated version of the software was found. Do you want to download and install?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                do_update(CURRENT_VERSION)
-            else:
-                return
+        # if check_for_update(CURRENT_VERSION):
+        #     reply = QMessageBox.question(None, 'Update found', 'An updated version of the software was found. Do you want to download and install?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        #     if reply == QMessageBox.Yes:
+        #         do_update(CURRENT_VERSION)
+        #     else:
+        #         return
                 
         self.sleepRecording = None
 
