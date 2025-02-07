@@ -153,18 +153,13 @@ def select_default_features(features, format='standard'):
         features = features[['activity','acf_max_y','resp_rate_y','resp_peak_median', 'resp_peak_std']]
     return features
 
-def read_and_process_features(acc_path, gyro_path, time_offset, cfg=None):
+def read_and_process_features(acc_path, gyro_path, time_offset=None, time_zone=None, cfg=None):
     """
     Reads sensor features from CSV files and processes them for classification.
-    
-    Args:
-        acc_path (str): Path to the accelerometer feature CSV file.
-        gyro_path (str): Path to the gyroscope feature CSV file.
-        time_offset (int): Time offset from UTC in hours.
-    
-    Returns:
-        pd.DataFrame: A DataFrame with sensor features ready for classification.
+    Either time_offset or time_zone must be provided, but not both.
     """
+    if (time_offset is None and time_zone is None) or (time_offset is not None and time_zone is not None):
+        raise ValueError("Exactly one of time_offset or time_zone must be specified.")
 
     file = open(acc_path, 'r')
     first_line = file.readline()
@@ -175,37 +170,36 @@ def read_and_process_features(acc_path, gyro_path, time_offset, cfg=None):
         skiprows = 0
         skipfooter = 0
         unit = 'ms'
-        timeColName = 'UTCTimestamp(ms)'
-        format = 'legacy'
-    else: # New format
+        time_col_name = 'UTCTimestamp(ms)'
+        fmt = 'legacy'
+    else:  # New format
         skiprows = 1
         skipfooter = 4
         unit = 's'
-        timeColName = 'Timestamp'
-        format = 'new'
+        time_col_name = 'Timestamp'
+        fmt = 'new'
 
-    accData = pd.read_csv(acc_path, skipinitialspace=True, skiprows=skiprows, skipfooter=skipfooter, engine='python')
-    gyroData = pd.read_csv(gyro_path, skipinitialspace=True, header=skiprows, skipfooter=skipfooter, engine='python')
-    
-    # Convert timestamps to local time using the time offset
-    accTime  = pd.to_datetime(accData[timeColName],  unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
-    gyroTime = pd.to_datetime(gyroData[timeColName], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
+    acc_data = pd.read_csv(acc_path, skipinitialspace=True, skiprows=skiprows, skipfooter=skipfooter, engine='python')
+    gyro_data = pd.read_csv(gyro_path, skipinitialspace=True, header=skiprows, skipfooter=skipfooter, engine='python')
 
-    # Set time based indexing and drop the now redundant time columns
-    accData = accData.set_index(accTime).drop(columns=[timeColName])
-    gyroData = gyroData.set_index(gyroTime).drop(columns=[timeColName])
-    
-    # Rename columns for clarity.
-    accData  = rename_columns(accData, format)
-    gyroData = rename_columns(gyroData, format)
+    if time_zone:
+        acc_time = pd.to_datetime(acc_data[time_col_name], unit=unit, utc=True).dt.tz_convert(time_zone).dt.tz_localize(None)
+        gyro_time = pd.to_datetime(gyro_data[time_col_name], unit=unit, utc=True).dt.tz_convert(time_zone).dt.tz_localize(None)
+    else:
+        acc_time = pd.to_datetime(acc_data[time_col_name], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
+        gyro_time = pd.to_datetime(gyro_data[time_col_name], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
 
-    # Resample features to constant 30s to match hypnogram
-    feature_df = resample_features(accData, gyroData, cfg=cfg)
+    acc_data = acc_data.set_index(acc_time).drop(columns=[time_col_name])
+    gyro_data = gyro_data.set_index(gyro_time).drop(columns=[time_col_name])
+
+    acc_data = rename_columns(acc_data, fmt)
+    gyro_data = rename_columns(gyro_data, fmt)
+
+    feature_df = resample_features(acc_data, gyro_data, cfg=cfg)
     feature_df.index.name = 'timestamp'
-    
-    if cfg is not None:
-        if cfg['default_features']:
-            feature_df = select_default_features(feature_df, format='standard')
+
+    if cfg and cfg.get('default_features'):
+        feature_df = select_default_features(feature_df, format='standard')
 
     return feature_df
 
