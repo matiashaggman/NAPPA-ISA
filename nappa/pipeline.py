@@ -98,31 +98,23 @@ def align_features_with_labels(sensor_df, hypnogram_df, cfg):
 def resample_features(acc_df, gyro_df, cfg):
     """
     Resamples sensor features to match the wanted frequency (usually hypnogram's 30-second epochs).
-    
-    Args:
-        acc_df (pd.DataFrame): DataFrame with accelerometer derived features.
-        gyro_df (pd.DataFrame): DataFrame with gyroscope derived features.
-    
-    Returns:
-        pd.DataFrame: A DataFrame with combined and resampled features.
+    Keeps 'body_pos' as discrete by forwarding the last known value.
     """
-
     if cfg is not None:
-        sample_interval=cfg['time_resolution']
+        sample_interval = cfg['time_resolution']
     else:
-        sample_interval='30s'
+        sample_interval = '30s'
 
-    # Resample gyroscope features to exactly 30s intervals to match hypnogram labels
+
     resampled_gyro_df = gyro_df.resample(sample_interval).mean().interpolate(method='spline', order=3, s=0.)
-
-    # Resample accelerometer features to 30s intervals by grouping and averaging
-    resampled_acc_df = acc_df.resample(sample_interval).mean()
-
-    # Ensure both DataFrames have the same index
+    resampled_acc_df = acc_df.resample(sample_interval).mean().interpolate(method='spline', order=3, s=0.)
     resampled_acc_df = resampled_acc_df.reindex(resampled_gyro_df.index).interpolate(method='spline', order=3, s=0.)
-
-    # Combine the resampled DataFrames (by columns)
     feature_df = pd.concat([resampled_acc_df, resampled_gyro_df], axis=1)
+
+    print(feature_df.columns)
+    if 'body_pos' in feature_df.columns:
+        print("rounding...")
+        feature_df['body_pos'] = feature_df['body_pos'].apply(lambda x: int(x))
 
     return feature_df
 
@@ -199,15 +191,18 @@ def read_and_process_features(acc_path, gyro_path, time_offset, cfg=None):
     accTime  = pd.to_datetime(accData[timeColName],  unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
     gyroTime = pd.to_datetime(gyroData[timeColName], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
 
-    # Set time based indexing
-    accData = accData.set_index(accTime)
-    gyroData = gyroData.set_index(gyroTime)
+    # Set time based indexing and drop the now redundant time columns
+    accData = accData.set_index(accTime).drop(columns=[timeColName])
+    gyroData = gyroData.set_index(gyroTime).drop(columns=[timeColName])
+    
+    # Rename columns for clarity.
+    accData  = rename_columns(accData, format)
+    gyroData = rename_columns(gyroData, format)
 
     # Resample features to constant 30s to match hypnogram
     feature_df = resample_features(accData, gyroData, cfg=cfg)
     feature_df.index.name = 'timestamp'
-    feature_df.drop(columns=[timeColName], inplace=True)
-    feature_df = rename_columns(feature_df, format)
+    
     if cfg is not None:
         if cfg['default_features']:
             feature_df = select_default_features(feature_df, format='standard')
