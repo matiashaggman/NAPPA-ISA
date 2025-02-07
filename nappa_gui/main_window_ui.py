@@ -556,7 +556,7 @@ class Ui_NappaDialog(object):
         self.buttonGroup_2.addButton(self.discreteHypnogramSummaryBox)
         self.gridLayout_2.addWidget(self.discreteHypnogramSummaryBox, 0, 0, 1, 1)
         self.sdtConfidenceSummaryBox = QtWidgets.QCheckBox(self.gridLayoutWidget_2)
-        self.sdtConfidenceSummaryBox.setEnabled(False)
+        self.sdtConfidenceSummaryBox.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -662,7 +662,7 @@ class Ui_NappaDialog(object):
         self.sdtSubsqBox.setObjectName("sdtSubsqBox")
         self.gridLayout_3.addWidget(self.sdtSubsqBox, 1, 0, 1, 1)
         self.sdtConfidenceSubsqBox = QtWidgets.QCheckBox(self.gridLayoutWidget_3)
-        self.sdtConfidenceSubsqBox.setEnabled(False)
+        self.sdtConfidenceSubsqBox.setEnabled(True)
         self.sdtConfidenceSubsqBox.setChecked(False)
         self.sdtConfidenceSubsqBox.setObjectName("sdtConfidenceSubsqBox")
         self.gridLayout_3.addWidget(self.sdtConfidenceSubsqBox, 2, 0, 1, 1)
@@ -696,7 +696,7 @@ class Ui_NappaDialog(object):
         self.tabWidget.addTab(self.tab_2, "")
 
         self.retranslateUi(NappaDialog)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(NappaDialog)
 
     def retranslateUi(self, NappaDialog):

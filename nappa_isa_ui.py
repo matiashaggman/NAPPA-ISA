@@ -7,6 +7,7 @@ import json
 import zipfile
 
 from shutil import rmtree
+import pandas as pd
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QGridLayout, QDateTimeEdit, QLabel, QDialog, QCheckBox
@@ -60,7 +61,7 @@ class Worker(QThread):
 
     def run(self):
         if self.call_type == 'analysis':
-            nappa_analysis(recording=self.recording, output_file=self.output_file, tempfolder=tempfolder,
+            nappa_analysis(recording=self.recording, wear_idx=self.recording.wear_idx, output_file=self.output_file, tempfolder=tempfolder,
                             options=self.options, status_callback=self.status_callback)
             self.analysis_finished.emit(self.output_file)
 
@@ -148,6 +149,7 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         #         return
                 
         self.sleepRecording = None
+        self.wear_idx = None
 
         self.setupUi(self)
         self.initUI()
@@ -160,9 +162,6 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         # Load settings from drive:
         self.options = load_options('options.json')
         self.initOptions()
-
-        self.worker = Worker(call_type='check_for_update')  
-        self.worker.start()
         return
 
     def initUI(self):
@@ -194,8 +193,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         if self.pageGenerationAutomaticButton.isChecked():
             self.selectPeriodsButton.setEnabled(False)
             if self.sleepRecording is not None:
-                wear_idx = detect_wear(self.sleepRecording.features.loc[:, 'activity'])
-                self.options['sleep_periods'] = detect_wear_blocks(wear_idx)
+                self.wear_idx = detect_wear(self.sleepRecording.features.loc[:, 'activity'])
+                self.options['sleep_periods'] = detect_wear_blocks(self.wear_idx)
         return
     
     def timeOffsetSpinBoxValueChanged(self):
@@ -289,8 +288,11 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.selectPeriodsButton.setEnabled(self.pageGenerationManualButton.isChecked())
 
         self.sdtConfidenceSummaryBox.setChecked(self.options['plots']['sdt_ci'])
+        self.sdtConfidenceSubsqBox.setChecked(self.options['plots']['subsequent_sdt_ci'])
+
         self.sdtSummaryBox.setChecked(self.options['plots']['sdt'])
         self.sdtSubsqBox.setChecked(self.options['plots']['subsequent_sdt'])
+        
 
         self.discreteHypnogramSummaryBox.setChecked(self.options['plots']['sdt'] == False)
         self.discreteHypnogramSubsqBox.setChecked(self.options['plots']['subsequent_sdt'] == False)
@@ -340,6 +342,8 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.options['plots']['donut']       = self.donutSubsqBox.isChecked()
 
         self.options['plots']['subsequent_sdt']         = self.sdtSubsqBox.isChecked()
+        self.options['plots']['sdt_ci']                 = self.sdtConfidenceSummaryBox.isChecked()
+        self.options['plots']['subsequent_sdt_ci']      = self.sdtConfidenceSubsqBox.isChecked()
         self.options['plots']['subsequent_activity']    = self.activitySubsqBox.isChecked()
         self.options['plots']['subsequent_respiration_rate'] = self.respirationSubsqBox.isChecked()
         self.options['plots']['subsequent_position']    = self.positionSubsqBox.isChecked()
@@ -368,18 +372,56 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         return
     
     def onImportComplete(self, sleepRecording):
+
         if sleepRecording is not None:
             self.sleepRecording = sleepRecording
-            wear_idx = detect_wear(self.sleepRecording.features.loc[:, 'activity'])
-            self.options['sleep_periods']= detect_wear_blocks(wear_idx)
+            if self.sleepRecording.duration > pd.Timedelta(days=1):
+                self.wear_idx = detect_wear(self.sleepRecording.features.loc[:, 'activity'])
+                self.sleepRecording.wear_idx = self.wear_idx
+                self.options['sleep_periods'] = detect_wear_blocks(self.wear_idx)
+                self.pageGenerationAutomaticButton.setEnabled(True)
+                self.multipageButton.setEnabled(True)
+                self.filterNonwearBox.setEnabled(True)
+
+            else:
+                self.wear_idx = pd.Series([True for i in range(len(self.sleepRecording))],
+                                          index=self.sleepRecording.features.index, name='wear')
+                self.sleepRecording.wear_idx = self.wear_idx
+
+                self.options['sleep_periods'] = [[self.sleepRecording.start.strftime("%Y-%m-%d %H:%M:%S"), self.sleepRecording.end.strftime("%Y-%m-%d %H:%M:%S")]]
+                self.options['filter_nonwear'] = False
+                self.options['page_generation_automatic'] = False
+                self.options['multipage'] = False
+
+                self.initOptions()
+                self.pageGenerationAutomaticButton.setChecked(False)
+                self.pageGenerationAutomaticButton.setEnabled(False)
+                self.multipageButton.setChecked(False)
+                self.multipageButton.setEnabled(False)
+                self.filterNonwearBox.setChecked(False)
+                self.filterNonwearBox.setEnabled(False)
+                QMessageBox.information(self, 'Short sleep recording', 'Automatic nonwear detection is available only for sleep recordings longer than one day (24 hours).')
             
+
+            self.outputFile.setText(self.inputFile.text()[:-4] + '_analyzed.zip')
+
             self.startTime.setDateTime(QDateTime(sleepRecording.start))
             self.endTime.setDateTime(QDateTime(sleepRecording.end))
             self.startTime.setEnabled(True)
             self.endTime.setEnabled(True)
             self.analyzeButton.setEnabled(True)    
 
-            self.durationLabel.setText(f'{str(self.sleepRecording.duration)[:-6]} hours')
+            duration_days = self.sleepRecording.duration.components.days
+            duration_hours = self.sleepRecording.duration.components.hours
+            duration_minutes = self.sleepRecording.duration.components.minutes
+
+            if self.sleepRecording.duration > pd.Timedelta(days=1):
+                self.durationLabel.setText(f'{duration_days}d {duration_hours}h {duration_minutes}m')
+            elif self.sleepRecording.duration > pd.Timedelta(hours=1):
+                self.durationLabel.setText(f'{duration_hours}h {duration_minutes}m')
+            else:
+                self.durationLabel.setText(f'{duration_minutes} minutes')
+
             self.statusLabel.setText('Status: sleep recording imported.')
             self.sleepPeriodsLabel.setText(f'{len(self.options['sleep_periods'])}')
             

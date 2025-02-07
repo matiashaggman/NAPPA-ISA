@@ -113,7 +113,6 @@ def resample_features(acc_df, gyro_df, cfg):
 
     print(feature_df.columns)
     if 'body_pos' in feature_df.columns:
-        print("rounding...")
         feature_df['body_pos'] = feature_df['body_pos'].apply(lambda x: int(x))
 
     return feature_df
@@ -182,12 +181,14 @@ def read_and_process_features(acc_path, gyro_path, time_offset=None, time_zone=N
     acc_data = pd.read_csv(acc_path, skipinitialspace=True, skiprows=skiprows, skipfooter=skipfooter, engine='python')
     gyro_data = pd.read_csv(gyro_path, skipinitialspace=True, header=skiprows, skipfooter=skipfooter, engine='python')
 
+    acc_time = pd.to_datetime(acc_data[time_col_name], unit=unit, utc=True)
+    gyro_time = pd.to_datetime(gyro_data[time_col_name], unit=unit, utc=True)
     if time_zone:
-        acc_time = pd.to_datetime(acc_data[time_col_name], unit=unit, utc=True).dt.tz_convert(time_zone).dt.tz_localize(None)
-        gyro_time = pd.to_datetime(gyro_data[time_col_name], unit=unit, utc=True).dt.tz_convert(time_zone).dt.tz_localize(None)
+        acc_time = acc_time.dt.tz_convert(time_zone).dt.tz_localize(None)
+        gyro_time = gyro_time.dt.tz_convert(time_zone).dt.tz_localize(None)
     else:
-        acc_time = pd.to_datetime(acc_data[time_col_name], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
-        gyro_time = pd.to_datetime(gyro_data[time_col_name], unit=unit, utc=True) + pd.Timedelta(hours=time_offset)
+        acc_time = acc_time.dt.tz_localize(None) + pd.Timedelta(hours=time_offset)
+        gyro_time = gyro_time.dt.tz_localize(None) + pd.Timedelta(hours=time_offset)
 
     acc_data = acc_data.set_index(acc_time).drop(columns=[time_col_name])
     gyro_data = gyro_data.set_index(gyro_time).drop(columns=[time_col_name])

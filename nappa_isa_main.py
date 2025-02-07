@@ -61,7 +61,7 @@ def init_plot_style():
     return 
 
 
-def plot_segments(ax, x, y, mask, color, step=False):
+def plot_segments(ax, x, mask, color, y=None, step=False, CI=None):
     """
     Plot segments of data on the given axes.
 
@@ -92,12 +92,18 @@ def plot_segments(ax, x, y, mask, color, step=False):
     if mask_int.iloc[-1] == 1:
         end_pts = np.append(end_pts, len(mask_int))
 
-    if not step:
-        for s, e in zip(start_pts, end_pts):
-            ax.plot(x[s:e], y[s:e], color=color, linewidth=1)
+    if CI is None:
+        if not step:
+            for s, e in zip(start_pts, end_pts):
+                ax.plot(x[s:e], y[s:e], color=color, linewidth=1)
+        else:
+            for s, e in zip(start_pts, end_pts):
+                ax.step(x[s:e], y[s:e], color=color, linewidth=1)
+
     else:
         for s, e in zip(start_pts, end_pts):
-            ax.step(x[s:e], y[s:e], color=color, linewidth=1)  
+            ax.fill_between(x[s:e], CI[0][s:e], CI[1][s:e], color=color, alpha=0.3)
+
     return
 
 
@@ -277,22 +283,30 @@ def make_main_fig(recording, wear_idx, options, main_page):
     time = recording.timestamps
     features = recording.features
     sdt = recording.labels.loc[:, 'sdt']
+    sdt_lower = recording.labels.loc[:, 'sdt_ci_lower']
+    sdt_upper = recording.labels.loc[:, 'sdt_ci_upper']
+
     hypnogram = recording.labels.loc[:, 'sleep_stage'].replace({'wake':2, 'light':1, 'deep':0}).infer_objects(copy=False)
 
     if options['median_filter']:
         sdt = medfilt(sdt, kernel_size=options['filter_window'])
+        sdt_lower = medfilt(sdt_lower, kernel_size=options['filter_window'])
+        sdt_upper = medfilt(sdt_upper, kernel_size=options['filter_window'])
 
     sdt_plot = False # If sdt_plot = false, then we print a discrete hypnogram.
+    sdt_ci = False
     activity_plot = False
     respiration_rate_plot = False
     position_plot = False
     if main_page:
         sdt_plot = options['plots']['sdt']
+        sdt_ci = options['plots']['sdt_ci']
         activity_plot = options['plots']['activity']
         respiration_rate_plot = options['plots']['respiration_rate']
         position_plot = options['plots']['position']
     else:
         sdt_plot = options['plots']['subsequent_sdt']
+        sdt_ci = options['plots']['subsequent_sdt_ci']
         activity_plot = options['plots']['subsequent_activity']
         respiration_rate_plot = options['plots']['subsequent_respiration_rate']
         position_plot = options['plots']['subsequent_position']
@@ -319,10 +333,15 @@ def make_main_fig(recording, wear_idx, options, main_page):
     # PLOT #1: Sleep Depth or discrete hypnogram
     if sdt_plot:  # Plot SDT
         if options['filter_nonwear']:
-            plot_segments(axes[plot_idx], time, sdt, wear_idx, color=coolwarm_palette[0])
-            plot_segments(axes[plot_idx], time, sdt, ~wear_idx, color=color_palette[-1])
+            plot_segments(ax=axes[plot_idx], x=time, y=sdt, mask=wear_idx, color=coolwarm_palette[0])
+            plot_segments(ax=axes[plot_idx], x=time, y=sdt, mask=~wear_idx, color=color_palette[-1])
+            if sdt_ci:
+                plot_segments(ax=axes[plot_idx], x=time, CI=(sdt_lower, sdt_upper), mask=wear_idx, color=coolwarm_palette[-1])
+                plot_segments(ax=axes[plot_idx], x=time, CI=(sdt_lower, sdt_upper), mask=~wear_idx, color=color_palette[-1])
         else:
             axes[plot_idx].plot(time, sdt, color=coolwarm_palette[0])
+            if sdt_ci:
+                axes[plot_idx].fill_between(time, sdt_lower, sdt_upper, color=coolwarm_palette[-1], alpha=0.3)
 
         axes[plot_idx].axhline(y=1.5, color='black', linestyle='--', zorder=1, alpha=1, linewidth=1)
         axes[plot_idx].axhline(y=2.5, color='black', linestyle='--', zorder=1, alpha=1, linewidth=1)
@@ -330,8 +349,8 @@ def make_main_fig(recording, wear_idx, options, main_page):
         axes[plot_idx].set_yticks([1, 2, 3])
     else:  # Plot a discrete hypnogram instead
         if options['filter_nonwear']:
-            plot_segments(axes[plot_idx], time, hypnogram, wear_idx, color=coolwarm_palette[0])
-            plot_segments(axes[plot_idx], time, hypnogram, ~wear_idx, color=color_palette[-1])
+            plot_segments(ax=axes[plot_idx], x=time, y=hypnogram, mask=wear_idx, color=coolwarm_palette[0])
+            plot_segments(ax=axes[plot_idx], x=time, y=hypnogram, mask=~wear_idx, color=color_palette[-1])
         else:
             axes[plot_idx].step(time, hypnogram, color=coolwarm_palette[0])
         axes[plot_idx].set_yticks([0, 1, 2])
@@ -351,8 +370,8 @@ def make_main_fig(recording, wear_idx, options, main_page):
             activity_feature = np.log10(np.abs(activity_feature))
 
         if options['filter_nonwear']:
-            plot_segments(axes[plot_idx], time, activity_feature, wear_idx, color=coolwarm_palette[0])
-            plot_segments(axes[plot_idx], time, activity_feature, ~wear_idx, color=color_palette[-1])
+            plot_segments(ax=axes[plot_idx], x=time, y=activity_feature, mask=wear_idx, color=coolwarm_palette[0])
+            plot_segments(ax=axes[plot_idx], x=time, y=activity_feature, mask=~wear_idx, color=color_palette[-1])
         else:
             axes[plot_idx].plot(time, activity_feature, color=coolwarm_palette[0])
 
@@ -368,8 +387,8 @@ def make_main_fig(recording, wear_idx, options, main_page):
             respiration_rate_feature = features.loc[:, 'resp_rate_y']
 
         if options['filter_nonwear']:
-            plot_segments(axes[plot_idx], time, respiration_rate_feature, wear_idx, color=coolwarm_palette[0])
-            plot_segments(axes[plot_idx], time, respiration_rate_feature, ~wear_idx, color=color_palette[-1])
+            plot_segments(ax=axes[plot_idx], x=time, y=respiration_rate_feature, mask=wear_idx, color=coolwarm_palette[0])
+            plot_segments(ax=axes[plot_idx], x=time, y=respiration_rate_feature, mask=~wear_idx, color=color_palette[-1])
         else:
             axes[plot_idx].plot(time, respiration_rate_feature, color=coolwarm_palette[0])
 
@@ -664,7 +683,7 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
     return pdf
 
 
-def nappa_analysis(recording, output_file, tempfolder, options=None, status_callback=None):
+def nappa_analysis(recording, wear_idx, output_file, tempfolder, options=None, status_callback=None):
     """
     Run the NAPPA analysis pipeline on a given SleepRecording object.
     Parameters:
@@ -723,10 +742,10 @@ def nappa_analysis(recording, output_file, tempfolder, options=None, status_call
     labels = pd.DataFrame(y, columns=['sleep_stage', 'p(deep)', 'p(light)', 'p(wake)'], index=features.index)
     labels['sleep_stage'] = labels['sleep_stage'].replace({0:'deep', 1:'light', 2:'wake'})
     labels['sdt'] = pd.Series(sdt, index=features.index)
-    
-    analyzedRecording = SleepRecording(features, labels, serial_number=recording.serial_number)
+    labels['sdt_ci_lower'] = pd.Series(lowerlim[:,0], index=features.index)
+    labels['sdt_ci_upper'] = pd.Series(upperlim[:,0], index=features.index)
 
-    wear_idx = detect_wear(analyzedRecording.features.loc[:, 'activity'])
+    analyzedRecording = SleepRecording(features, labels, serial_number=recording.serial_number)
 
     zf = zipfile.ZipFile(output_file, mode="w")
     

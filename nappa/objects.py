@@ -9,7 +9,7 @@ class SleepRecording:
     """
     A class to represent a single sleep recording. 
     """
-    def __init__(self, features, labels=None, clinical_id=None, serial_number=None, comments=None,
+    def __init__(self, features, labels=None, wear_idx=None, clinical_id=None, serial_number=None, comments=None,
                        id=None,  age=None,    timestamps=None,  sampling_interval=None):
         """
         Initialize a SleepRecording object.
@@ -17,6 +17,7 @@ class SleepRecording:
         Args:
           features (pd.Dataframe or torch.Tensor): Sensor data representing the features extracted from the sleep recording.
           labels (pd.Dataframe or torch.Tensor, optional): The labels corresponding to each epoch in the sleep recording.
+          wear_idx (pd.Series, optional): The time-indexed points where sensor was worn on the baby.
           id (int, optional): A unique identifier for the subject of the sleep recording.
           age (int, optional): The age of the subject in months.
           timestamps (np.ndarray, optional): Timestamps corresponding to each epoch in the sleep recording.
@@ -28,6 +29,7 @@ class SleepRecording:
         self.age = age
         self.features = features
         self.labels = labels
+        self.wear_idx = wear_idx
         self.timestamps = timestamps
         self.comments = comments
         self.sampling_interval = sampling_interval
