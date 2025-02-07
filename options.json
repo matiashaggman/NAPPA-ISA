@@ -17,7 +17,7 @@
     "filter_window": 19,
     "filter_nonwear": true,
     "csv_output": true,
-    "pdf_output": false,
+    "pdf_output": true,
     "report_dpi": 100,
     "log_scale": true,
     "date_style": 0,
@@ -25,20 +25,7 @@
     "full_features": true,
     "multipage": true,
     "page_generation_automatic": false,
-    "sleep_periods": [
-        [
-            "2024-11-05 18:05:00",
-            "2024-11-06 09:02:00"
-        ],
-        [
-            "2024-11-06 16:01:30",
-            "2024-11-07 09:55:30"
-        ],
-        [
-            "2024-11-07 17:21:30",
-            "2024-11-08 13:09:30"
-        ]
-    ],
-    "start_time": "2024-11-05 09:52:00",
-    "end_time": "2024-11-08 17:04:30"
+    "sleep_periods": [],
+    "start_time": "",
+    "end_time": ""
 }
