@@ -65,6 +65,8 @@
 
 2. **Use the GUI** to:
    - Select an input ZIP file containing the sleep recording data (drag & drop supported).
+     
+     ```IMPORTANT: The ZIP file at the moment may contain only one set of wearable sensor generated files, i.e one pair of 'AccFeatures.csv' and 'GyroFeatures.csv' -feature files.```
    - Configure any analysis options (e.g. filtering, time offset).
    - Click **Analyze** to start the analysis.
    - The resulting files are saved to a ZIP archive.
