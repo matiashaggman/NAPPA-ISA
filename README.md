@@ -108,4 +108,3 @@ This project is licensed under the **MIT License**.
 
 > **Note**: This program is in **early development** and remains largely untested. Please report any bugs or compatibility issues to the author.  
 > Developed and maintained by the **BABA Center**.
-```
