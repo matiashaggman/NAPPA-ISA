@@ -195,14 +195,15 @@ def make_bar_fig(recording, wear_idx, options):
     sns.set_theme()
     ax = df_counts.plot(kind='bar', stacked=True, figsize=(10, 4), color=coolwarm_palette)
 
-    ax.set_title('Sleep Stage Distribution Over Time')
+    ax.set_title('Sleep stages distribution over time')
     plt.xticks(rotation=0)
 
     y_labels = ax.get_yticks()
     ax.set_yticklabels([f"{int(y*30/(60*60))}" for y in y_labels])
     ax.set_ylabel('Hours')
 
-    plt.legend(title='Sleep Stage', bbox_to_anchor=(1, 1), loc='upper left', frameon=False)
+    plt.legend(title='Sleep stages', bbox_to_anchor=(0.7, -0.1), ncols=3, frameon=False)
+
     plt.xlabel('')
     plt.tight_layout()
 
@@ -356,7 +357,7 @@ def make_main_fig(recording, wear_idx, options, main_page):
         axes[plot_idx].set_yticks([0, 1, 2])
 
     axes[plot_idx].set_yticklabels(["Deep", "Light", "Wake"])
-    axes[plot_idx].set_title("Sleep Depth")
+    axes[plot_idx].set_title("Sleep depth")
     plot_idx += 1
 
     # PLOT #2: Activity
@@ -404,13 +405,13 @@ def make_main_fig(recording, wear_idx, options, main_page):
         axes[plot_idx].fill_between(time, 0, 1, where=(pos == 2), color=color_palette[3],
                                     transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Supine')
         axes[plot_idx].fill_between(time, 0, 1, where=(pos == 3), color=color_palette[2],
-                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Right Side')
+                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Right side')
         axes[plot_idx].fill_between(time, 0, 1, where=(pos == 4), color="#a1c9f4",
-                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Left Side')
+                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Left side')
         axes[plot_idx].fill_between(time, 0, 1, where=(pos == 5), color="#d0bbff",
-                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Head Down')
+                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Head down')
         axes[plot_idx].fill_between(time, 0, 1, where=(pos == 6), color=color_palette[6],
-                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Head Up')
+                                    transform=axes[plot_idx].get_xaxis_transform(), interpolate=True, label='Head up')
 
         if options['filter_nonwear']:
             axes[plot_idx].fill_between(time, 0, 1, where=~wear_idx, color=color_palette[-1],
@@ -465,20 +466,27 @@ def get_sleep_statistics(recording, wear_idx):
         - deep_sleep: Total deep sleep time.
         - total_sleep: Total sleep time.
         - total_time: Total recording time.
+        - awakenings: Number of awakenings.
     """
     total_time = recording.duration
     stage_counts = recording.labels.loc[wear_idx, 'sleep_stage'].value_counts()
+    awakenings = 0
 
-    awake_time = timedelta(seconds=stage_counts.get('wake', 0) * 30.0)
-    light_sleep = timedelta(seconds=stage_counts.get('light', 0) * 30.0)
-    deep_sleep = timedelta(seconds=stage_counts.get('deep', 0) * 30.0)
+    awake_time   = timedelta(seconds=stage_counts.get('wake', 0) * 30.0)
+    light_sleep  = timedelta(seconds=stage_counts.get('light', 0) * 30.0)
+    deep_sleep   = timedelta(seconds=stage_counts.get('deep', 0) * 30.0)
     nonwear_time = timedelta(seconds=np.sum(~wear_idx) * 30.0)
-
     total_sleep = light_sleep + deep_sleep
 
+    for i, (idx, row) in enumerate(recording.labels.iterrows()):
+        if row['sleep_stage'] == 'wake':
+            if recording.labels.iloc[i-1]['sleep_stage'] != 'wake':
+                awakenings += 1
+
     return dict({ 'nonwear_time': nonwear_time, 'awake_time': awake_time,
-                  'light_sleep': light_sleep,   'deep_sleep': deep_sleep,
-                  'total_sleep': total_sleep,   'total_time': total_time})
+                  'light_sleep' : light_sleep,  'deep_sleep': deep_sleep,
+                  'total_sleep' : total_sleep,  'total_time': total_time,
+                  'awakenings'  : awakenings })
 
 
 def detect_wear(feature, threshold=0.009, seg_len=120, overlap=119, min_nonwear_duration=1800):
@@ -627,7 +635,7 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
             make_bar_fig(recording, wear_idx, options)
             plt.savefig(dist_fig_path, dpi=options['report_dpi'])
             plt.close()
-            pdf.image(dist_fig_path, x=6, y=165, w=195, h=78)
+            pdf.image(dist_fig_path, x=15, y=165, w=185, h=78)
         elif options['plots']['summary_fig'] == 'violin':
             make_violin_fig(recording, wear_idx, options)
             plt.savefig(dist_fig_path, dpi=options['report_dpi'])

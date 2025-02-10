@@ -423,7 +423,7 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
                 self.durationLabel.setText(f'{duration_minutes} minutes')
 
             self.statusLabel.setText('Status: sleep recording imported.')
-            self.sleepPeriodsLabel.setText(f'{len(self.options['sleep_periods'])}')
+            self.sleepPeriodsLabel.setText(f"{len(self.options['sleep_periods'])}")
             
         else:
             self.inputFile.setText('')
