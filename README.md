@@ -51,8 +51,9 @@
 
 ### 2. Using the Standalone version (`nappa_isa_ui.exe` on Windows)
 
-1. **Download** the contents of the `NAPPA-ISA-STANDALONE` directory.  
-2. **Keep files together**: All downloaded contents must remain in the **same directory** for the application to work properly.
+1. **Download** the contents of the `NAPPA-ISA-STANDALONE` directory.
+   > **Note**: When downloading the whole repository as a ZIP file, the executable itself is not downloaded. Instead, you will have to manually navigate to the executable file in the github directory and download it there. At this moment, the standalone application is unfortunately very slow to start and thus users have to wait for a period when opening the app.
+3. **Keep files together**: All downloaded contents must remain in the **same directory** for the application to work properly.
 
 ---
 
