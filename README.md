@@ -6,12 +6,12 @@
 
 ## Features
 
-- **Data import**: Load sleep recordings from ZIP files containing accelerometer and gyroscope data in CSV format.  
-- **Automatic detection**: Automatically detect sleep periods and generate detailed reports.  
+- **Data import**: Load sleep recordings from ZIP files containing accelerometer and gyroscope feature data in CSV format.  
+- **Automatic wear detection**: Automatically detect sleep periods and generate detailed with individual analyses for each sleep period.  
 - **Manual selection**: Option to manually select sleep periods for customized report generation.  
-- **Configurable analysis**: Set time offset, apply filters, and customize plot settings.  
+- **Configurable analysis**: Set time offset, apply filters, and customize plot settings. 
 - **Multi-page PDF reports**: Summarize sleep statistics and visualize infant activity, respiration rate, and more.  
-- **CSV outputs**: Classifier results and other analytics can be exported in CSV format.
+- **CSV outputs**: Classifier results, recording data and related analytics can be exported in CSV format.
 
 ---
 
@@ -52,14 +52,14 @@
 ### 2. Using the Standalone version (`nappa_isa_ui.exe` on Windows)
 
 1. **Download** the contents of the `NAPPA-ISA-STANDALONE` directory.
-   > **Note**: When downloading the whole repository as a ZIP file, the executable itself is not downloaded. Instead, you will have to manually navigate to the executable file in the github directory and download it there. At this moment, the standalone application is unfortunately very slow to start and thus users have to wait for a period when opening the app.
+   > **Note**: When downloading the whole repository as a ZIP file, the executable will be corrupted. Instead, you will have to manually navigate to the executable file in the github directory and download it there. At this moment, the standalone application is unfortunately very slow to start.
 3. **Keep files together**: All downloaded contents must remain in the **same directory** for the application to work properly.
 
 ---
 
 ## Usage
 
-1. **Run the application**:
+1. **Run the GUI application**:
    ```bash
    python nappa_isa_ui.py
    ```
@@ -68,16 +68,18 @@
    - Select an input ZIP file containing the sleep recording data (drag & drop supported).
      
      ```IMPORTANT: The ZIP file at the moment may contain only one set of wearable sensor generated files, i.e one pair of 'AccFeatures.csv' and 'GyroFeatures.csv' -feature files.```
-   - Configure any analysis options (e.g. filtering, time offset).
+   - Configure any analysis options (e.g. filtering, time offset (based on your location)).
    - Click **Analyze** to start the analysis.
    - The resulting files are saved to a ZIP archive.
 
 3. **Outputs**:
    - A **PDF** report containing:
-     - A sleep depth trend or “hypnogram” over time
-     - Baby activity, respiration rate, and body position data
+     - A sleep depth trend or a discrete hypnogram over time
+     - Baby activity, respiration rate, and body position data as functions of time
      - Bar/violin plots for overall sleep distribution
-   - A **CSV** file with the classifier output and the recorded feature data from the wearable sensor
+     - A donut plot for individual sleep periods visualizing the distribution of sleep stages.
+     - 
+   - A **CSV** file with the classifier output, sleep depth trend and the recorded feature data from the wearable sensor
 
 ---
 
@@ -90,9 +92,7 @@
 - **`nappa/pipeline.py`**: Routines for reading and processing feature files.  
 - **`nappa/objects.py`**: Classes for organizing sensor data.  
 - **`nappa/models.py`**: Deep learning classifier for the sleep depth trend & hypnogram.  
-- **`nappa/update.py`**: Functions to check and perform updates.  
 - **`nappa/resources.qrc`**: Resource file for icons and assets.
-
 ---
 
 ## Contributing
@@ -110,4 +110,4 @@ This project is licensed under the **MIT License**.
 ## Acknowledgements
 
 > **Note**: This program is in **early development** and remains largely untested. Please report any bugs or compatibility issues to the author.  
-> Developed and maintained by the **BABA Center**.
+> Developed and maintained by the [BABA Center](https://www.babacenter.fi/).
