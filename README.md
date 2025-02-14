@@ -39,7 +39,7 @@
 
 1. **Clone or download** the repository:
    ```bash
-   git clone https://github.com/yourusername/NAPPA-ISA.git
+   git clone https://github.com/matiashaggman/NAPPA-ISA/NAPPA-ISA.git.git
    cd NAPPA-ISA
    ```
    *Alternatively, click the green “Code” button and select “Download ZIP”.*
