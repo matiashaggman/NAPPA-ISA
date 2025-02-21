@@ -111,7 +111,6 @@ def resample_features(acc_df, gyro_df, cfg):
     resampled_acc_df = resampled_acc_df.reindex(resampled_gyro_df.index).interpolate(method='spline', order=3, s=0.)
     feature_df = pd.concat([resampled_acc_df, resampled_gyro_df], axis=1)
 
-    print(feature_df.columns)
     if 'body_pos' in feature_df.columns:
         feature_df['body_pos'] = feature_df['body_pos'].apply(lambda x: int(x))
 

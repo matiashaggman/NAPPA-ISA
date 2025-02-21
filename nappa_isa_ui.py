@@ -10,7 +10,7 @@ from shutil import rmtree
 import pandas as pd
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QGridLayout, QDateTimeEdit, QLabel, QDialog, QCheckBox
+from PyQt5.QtWidgets import QGridLayout, QDateTimeEdit, QLabel, QDialog, QPushButton
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QThread, pyqtSignal, QDateTime
@@ -19,11 +19,11 @@ from PyQt5.QtGui import QIcon
 from nappa_gui.main_window_ui import Ui_NappaDialog
 
 from nappa_isa_main import nappa_analysis, load_data, detect_wear, detect_wear_blocks
-from nappa.update import check_for_update, do_update
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout
 
 tempfolder = tempfile.gettempdir() + '\\NAPPA-ISA'
 
-CURRENT_VERSION = 1.0
+CURRENT_VERSION = 1.1
 
 # Separate thread runner for various functions.
 # This is used to prevent the main window from freezing when running analysis.
@@ -61,77 +61,128 @@ class Worker(QThread):
 
     def run(self):
         if self.call_type == 'analysis':
-            nappa_analysis(recording=self.recording, wear_idx=self.recording.wear_idx, output_file=self.output_file, tempfolder=tempfolder,
-                            options=self.options, status_callback=self.status_callback)
+            try:
+                nappa_analysis(recording=self.recording, wear_idx=self.recording.wear_idx,
+                                output_file=self.output_file, tempfolder=tempfolder,
+                                options=self.options, status_callback=self.status_callback)
+            except Exception as e:
+                QMessageBox.critical(None, 'Error', f'Analysis failed: {str(e)}')
             self.analysis_finished.emit(self.output_file)
 
         elif self.call_type == 'import':
             try:
                 if os.path.isdir(tempfolder):
                     rmtree(tempfolder)
-            except Exception as e:
-                QMessageBox.critical(None, 'Error', str(e))
-                return
-            try:
+
                 with zipfile.ZipFile(self.input_file, "r") as zip_ref:
                     zip_ref.extractall(tempfolder)
+
+                sleepRecording = load_data(tempfolder, time_offset=self.options['time_offset'])
+                self.import_finished.emit(sleepRecording)
             except Exception as e:
-                QMessageBox.critical(None, 'Error', str(e))
-                return
-            sleepRecording = load_data(tempfolder, time_offset=self.options['time_offset'])
-            self.import_finished.emit(sleepRecording)
+                QMessageBox.critical(None, 'Error', 'Failed to import recording.')
+                self.import_finished.emit(None)
         return
-
+    
 class TimeDateGridWindow(QDialog):
-    def __init__(self, periods):
+    def __init__(self, periods=None):
         super().__init__()
-        self.setWindowTitle("Select sleep periods for individual report pages.")
+        self.setWindowTitle("Select sleep periods for report pages.")
 
+        self.rows = 0
         self.periods = []
-        self.checkboxes = []
-        self.layout = QGridLayout()
-
         self.date_time_edits = []
-        for i, (start, end) in enumerate(periods):
 
-            date_time_edit_start = QDateTimeEdit()
-            date_time_edit_end = QDateTimeEdit()
-            checkbox = QCheckBox("Include")
-            
-            start = QDateTime.fromString(start, "yyyy-MM-dd HH:mm:ss")
-            end = QDateTime.fromString(end, "yyyy-MM-dd HH:mm:ss")
+        self.gridLayout = QGridLayout()
 
-            date_time_edit_start.setDateTime(start)
-            date_time_edit_end.setDateTime(end)
-            checkbox.setChecked(True)
+        mainLayout = QVBoxLayout(self)
 
-            labelStart = QLabel("Start:")
-            labelEnd = QLabel("End:")
+        mainLayout.addLayout(self.gridLayout)
 
-            date_time_edit_start.setCalendarPopup(True)
-            date_time_edit_end.setCalendarPopup(True)
+        self.addButton = QPushButton("Add new sleep period")
+        self.addButton.clicked.connect(self.addPeriod)
 
-            row = i
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(self.addButton)
 
-            self.layout.addWidget(labelStart, row, 0)
-            self.layout.addWidget(date_time_edit_start, row, 1)
-            self.layout.addWidget(labelEnd, row, 2)
-            self.layout.addWidget(date_time_edit_end, row, 3)
-            self.layout.addWidget(checkbox, row, 4)
+        mainLayout.addStretch()
+        mainLayout.addLayout(buttonLayout)
 
-            self.date_time_edits.append((date_time_edit_start, date_time_edit_end))
-            self.checkboxes.append(checkbox)
+        self.setLayout(mainLayout)
+        if periods:
+            for i, (start_string, end_string) in enumerate(periods):
+                self.addPeriod(start_string, end_string)
 
-        self.setLayout(self.layout)
+
+    def addPeriod(self, start_string=None, end_string=None):
+        """
+        Add a new row to the grid. If start_string and end_string
+        are given, fill them in. Otherwise, use "now".
+        """
+        labelStart = QLabel("Start:")
+        labelEnd   = QLabel("End:")
+        startEdit  = QDateTimeEdit()
+        endEdit    = QDateTimeEdit()
+
+        if start_string:
+            start = QDateTime.fromString(start_string, "yyyy-MM-dd HH:mm:ss")
+            startEdit.setDateTime(start)
+        if end_string:
+            end = QDateTime.fromString(end_string, "yyyy-MM-dd HH:mm:ss")
+            endEdit.setDateTime(end)
+
+        delete_button = QPushButton("Delete")
+        delete_button.clicked.connect(self.deletePeriod)
+
+        self.gridLayout.addWidget(labelStart,  self.rows, 0)
+        self.gridLayout.addWidget(startEdit,   self.rows, 1)
+        self.gridLayout.addWidget(labelEnd,    self.rows, 2)
+        self.gridLayout.addWidget(endEdit,     self.rows, 3)
+        self.gridLayout.addWidget(delete_button, self.rows, 4)
+
+        self.date_time_edits.append((startEdit, endEdit))
+
+        self.rows += 1
+
+
+    def deletePeriod(self):
+        """Delete the row corresponding to the clicked 'Delete' button."""
+        button = self.sender()
+        if not button:
+            return
+
+        index = self.gridLayout.indexOf(button)
+        if index < 0:
+            return
+
+        row, col, rowSpan, colSpan = self.gridLayout.getItemPosition(index)
+
+        for c in range(self.gridLayout.columnCount()):
+            item = self.gridLayout.itemAtPosition(row, c)
+            if item is not None:
+                w = item.widget()
+                if w is not None:
+                    w.deleteLater()
+
+        del self.date_time_edits[row]
+        self.rows -= 1
+
+        for r in range(row + 1, self.rows + 1):
+            for c in range(self.gridLayout.columnCount()):
+                item = self.gridLayout.itemAtPosition(r, c)
+                if item is not None:
+                    self.gridLayout.removeItem(item)
+                    self.gridLayout.addItem(item, r - 1, c)
+        return
 
 
     def closeEvent(self, event):
-        for (start_edit, end_edit), checkbox in zip(self.date_time_edits, self.checkboxes):
-            if checkbox.isChecked():
-                start = start_edit.dateTime().toString("yyyy-MM-dd HH:mm:ss")
-                end = end_edit.dateTime().toString("yyyy-MM-dd HH:mm:ss")
-                self.periods.append([start, end])
-
+        self.periods.clear()
+        for start_edit, end_edit in self.date_time_edits:
+            start = start_edit.dateTime().toString("yyyy-MM-dd HH:mm:ss")
+            end   = end_edit.dateTime().toString("yyyy-MM-dd HH:mm:ss")
+            self.periods.append([start, end])
         self.accept()
         return
 
@@ -141,13 +192,6 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
     def __init__(self):
         super().__init__()
 
-        # if check_for_update(CURRENT_VERSION):
-        #     reply = QMessageBox.question(None, 'Update found', 'An updated version of the software was found. Do you want to download and install?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        #     if reply == QMessageBox.Yes:
-        #         do_update(CURRENT_VERSION)
-        #     else:
-        #         return
-                
         self.sleepRecording = None
         self.wear_idx = None
 
@@ -195,6 +239,7 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
             if self.sleepRecording is not None:
                 self.wear_idx = detect_wear(self.sleepRecording.features.loc[:, 'activity'])
                 self.options['sleep_periods'] = detect_wear_blocks(self.wear_idx)
+                self.sleepPeriodsLabel.setText(f"{len(self.options['sleep_periods'])}")
         return
     
     def timeOffsetSpinBoxValueChanged(self):
@@ -309,6 +354,10 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.violinRadioButton.setChecked(self.options['plots']['summary_fig'] == 'violin')
         self.barRadioButton.setChecked(self.options['plots']['summary_fig'] == 'bar')
 
+        self.figuresOutputBox.setChecked(self.options['figures_output'])
+        self.sleepStatisticsSummaryBox.setChecked(self.options['summary_sleep_stats'])
+        self.sleepStatisticsSubsqBox.setChecked(self.options['subsequent_sleep_stats'])
+
         return self
     
     def refreshOptions(self):
@@ -328,6 +377,7 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
 
         self.options['csv_output']      = self.csvOutputBox.isChecked()
         self.options['pdf_output']      = self.pdfOutputBox.isChecked()
+        self.options['figures_output']  = self.figuresOutputBox.isChecked()
         
         self.options['full_features']   = self.fullFeaturesButton.isChecked()
         self.options['multipage']       = self.multipageButton.isChecked()
@@ -337,16 +387,19 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         self.options['plots']['sdt_ci']      = self.sdtConfidenceSummaryBox.isChecked()
         self.options['plots']['sdt']         = self.sdtSummaryBox.isChecked()
         self.options['plots']['activity']    = self.activitySummaryBox.isChecked()
-        self.options['plots']['respiration_rate'] = self.respirationSummaryBox.isChecked()
         self.options['plots']['position']    = self.positionSummaryBox.isChecked()
         self.options['plots']['donut']       = self.donutSubsqBox.isChecked()
+        self.options['plots']['respiration_rate'] = self.respirationSummaryBox.isChecked()
 
         self.options['plots']['subsequent_sdt']         = self.sdtSubsqBox.isChecked()
         self.options['plots']['sdt_ci']                 = self.sdtConfidenceSummaryBox.isChecked()
         self.options['plots']['subsequent_sdt_ci']      = self.sdtConfidenceSubsqBox.isChecked()
         self.options['plots']['subsequent_activity']    = self.activitySubsqBox.isChecked()
-        self.options['plots']['subsequent_respiration_rate'] = self.respirationSubsqBox.isChecked()
         self.options['plots']['subsequent_position']    = self.positionSubsqBox.isChecked()
+        self.options['plots']['subsequent_respiration_rate'] = self.respirationSubsqBox.isChecked()
+
+        self.options['subsequent_sleep_stats']          = self.sleepStatisticsSubsqBox.isChecked()
+        self.options['summary_sleep_stats']             = self.sleepStatisticsSummaryBox.isChecked()
 
         return self
     
@@ -435,6 +488,21 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
     def analyzeRecording(self):
 
         self.refreshOptions()
+        try:
+            with open('options.json', 'w') as json_file:
+                json.dump(self.options, json_file, indent=4)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save options: {str(e)}")
+
+        for start, end in self.options['sleep_periods']:
+            if QDateTime.fromString(start, "yyyy-MM-dd HH:mm:ss") < QDateTime(self.sleepRecording.start) \
+                or QDateTime.fromString(end, "yyyy-MM-dd HH:mm:ss") > QDateTime(self.sleepRecording.end):
+                QMessageBox.warning(self, "Invalid Period",
+                                    f"Selected period {start}-{end} is out of the sleep recording range.")
+                return
+            else:
+                continue
+                
         input_file = self.inputFile.text()
         output_file = self.outputFile.text()
         if not input_file or not output_file:
@@ -477,10 +545,55 @@ class NappaMainWindow(QMainWindow, Ui_NappaDialog):
         return
     
 
+default_options = {
+    "plots": {
+        "sdt": True,
+        "activity": True,
+        "respiration_rate": True,
+        "position": True,
+        "sdt_ci": True,
+        "donut": True,
+        "summary_fig": "bar",
+        "subsequent_sdt": True,
+        "subsequent_sdt_ci": True,
+        "subsequent_activity": True,
+        "subsequent_respiration_rate": True,
+        "subsequent_position": True
+    },
+    "figures_output":True,
+    "subsequent_sleep_stats":True,
+    "summary_sleep_stats":True,
+    "time_offset": 2,
+    "median_filter": True,
+    "filter_window": 19,
+    "filter_nonwear": True,
+    "csv_output": True,
+    "pdf_output": True,
+    "report_dpi": 100,
+    "log_scale": True,
+    "date_style": 0,
+    "x_ticks": 8,
+    "full_features": True,
+    "multipage": True,
+    "page_generation_automatic": True,
+    "sleep_periods": [],
+    "start_time": "",
+    "end_time": ""
+}
+
 def load_options(options_path):
-    with open(options_path, 'r') as file:
-        settings = json.load(file)
-    return settings
+    options = default_options.copy()
+    try:
+        with open(options_path, 'r') as file:
+            loaded_options = json.load(file)
+            for key, val in loaded_options.items():
+                if isinstance(val, dict) and key in options:
+                    options[key].update(val)
+                else:
+                    options[key] = val
+    except Exception as e:
+        QMessageBox.critical(None, "Error", f"Failed to load options from options.json: {str(e)}. Reverting to default options.")
+    return options
 
 # Entry point
 if __name__ == '__main__':

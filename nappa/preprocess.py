@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+import pandas as pd
 import torch
 
 from .objects import NappaDataset
@@ -32,12 +33,12 @@ class StandardScaler:
             data (NappaDataset or np.ndarray / torch.tensor): A new instance of the normalized data
         """
         copy_data = copy.deepcopy(data)
-        if isinstance(data, np.ndarray):
+        if isinstance(data, np.ndarray) or isinstance(data, pd.DataFrame):
             if self.method == 'global':
                 copy_data = self.transform(copy_data, with_mean, with_std)
             else:
                 copy_data = self.transform(copy_data, copy_data.mean(axis=0), copy_data.std(axis=0))
-        
+
         elif isinstance(data, NappaDataset):
             if data.normalization is not None:
                 raise ValueError('Data already normalized.')
@@ -67,4 +68,6 @@ class StandardScaler:
             
             copy_data.normalization = f'standard ({self.method})'
 
+        else:
+            raise ValueError('Data must be a NappaDataset or a numpy array.')
         return copy_data # Return a copy of the normalized data, do not modify in-place for safety.

@@ -3,8 +3,6 @@ import pandas as pd
 import torch
 import pickle
 
-from torch.utils.data import Dataset
-
 class SleepRecording:
     """
     A class to represent a single sleep recording. 
@@ -34,17 +32,29 @@ class SleepRecording:
         self.comments = comments
         self.sampling_interval = sampling_interval
 
-        if type(features.index) == pd.DatetimeIndex:
-            self.timestamps = self.features.index
-            self.start = features.index[0]
-            self.end = features.index[-1]
-            self.duration = self.end - self.start
-            self.mode = 'default'  
+        if type(features) == pd.DataFrame:
+            if type(features.index) == pd.DatetimeIndex:
+                self.timestamps = self.features.index
+                self.start = features.index[0]
+                self.end = features.index[-1]
+                self.duration = self.end - self.start
+                self.mode = 'default'  
         else:
             self.timestamps = np.arange(start=0, stop=self.features.shape[0]*30, step=30)
             self.mode = 'torch'
 
         return
+    
+    def save(self, filename: str, precision: int = 3):
+        """
+        Save the contents (features, labels) of the sleep recording as a .csv file.
+        """
+        if self.mode == 'default':
+            df = pd.concat([self.features, self.labels], axis=1)
+            df.to_csv(filename, date_format='%Y-%m-%d %H:%M:%S', float_format=f'%.{precision}f')
+        else:
+            raise ValueError("Cannot save torch tensor data.")
+
     def __str__(self) -> str:
         ret = [
             f'Subject ID: {self.id}\n' if self.id is not None else '',
@@ -60,7 +70,7 @@ class SleepRecording:
         return self.features.shape[0]
 
     
-class NappaDataset(Dataset):
+class NappaDataset(torch.utils.data.Dataset):
     """
     A dataset class to hold multiple SleepRecording objects.
     Compatible with torch dataloader & batched processing.

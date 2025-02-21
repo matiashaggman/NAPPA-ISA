@@ -31,6 +31,7 @@ from nappa.pipeline import read_and_process_features, select_default_features
 from nappa.plots import caltrendwithCI
 
 from nappa.models import NappaSleepNet
+import glob
 
 color_palette = sns.color_palette('Set2')
 coolwarm_palette = sns.color_palette(palette='coolwarm')
@@ -299,6 +300,7 @@ def make_main_fig(recording, wear_idx, options, main_page):
     activity_plot = False
     respiration_rate_plot = False
     position_plot = False
+
     if main_page:
         sdt_plot = options['plots']['sdt']
         sdt_ci = options['plots']['sdt_ci']
@@ -381,7 +383,7 @@ def make_main_fig(recording, wear_idx, options, main_page):
         plot_idx += 1
 
     # PLOT #3: Respiration rate
-    if activity_plot:
+    if respiration_rate_plot:
         if options['median_filter']:
             respiration_rate_feature = medfilt(features.loc[:, 'resp_rate_y'], kernel_size=options['filter_window'])
         else:
@@ -534,6 +536,15 @@ def detect_wear(feature, threshold=0.009, seg_len=120, overlap=119, min_nonwear_
 
 
 def detect_wear_blocks(wear_idx, threshold_length=pd.Timedelta(hours=4), buffer_length=pd.Timedelta(minutes=30)):
+    """
+    Return a list of string tuples for each detected wear block.
+
+    Each block spans a period where the wearable was continuously worn for at least
+    the specified threshold_length. We also extend the start and end of each block
+    by the given buffer_length. The returned time ranges are converted to strings
+    with the format '%Y-%m-%d %H:%M:%S'.
+    """
+
     wearTime = wear_idx  # wear_idx is a Series of booleans indexed by time
     wearBlocks = []
     current_block = []
@@ -545,17 +556,25 @@ def detect_wear_blocks(wear_idx, threshold_length=pd.Timedelta(hours=4), buffer_
         else:
             if current_block:
                 if (current_block[-1] - current_block[0]) >= threshold_length:
-                    wearBlocks.append((
-                        current_block[0] - buffer_length,
-                        current_block[-1] + buffer_length,
-                    ))
+                    # if we are creating the first block, don't subtract buffer_length (might go over the start time)
+                    if len(wearBlocks) == 0:
+                        wearBlocks.append((
+                            current_block[0],
+                            current_block[-1] + buffer_length,
+                        ))
+                    else:
+                        wearBlocks.append((
+                            current_block[0] - buffer_length,
+                            current_block[-1] + buffer_length,
+                        ))
                 current_block = []
 
+    # Check last block
     if current_block:
         if (current_block[-1] - current_block[0]) >= threshold_length:
             wearBlocks.append((
                 current_block[0] - buffer_length,
-                current_block[-1] + buffer_length,
+                current_block[-1],
             ))
 
     wearBlocks = [(start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S")) for start, end in wearBlocks]
@@ -564,7 +583,10 @@ def detect_wear_blocks(wear_idx, threshold_length=pd.Timedelta(hours=4), buffer_
 
 
 def load_data(data_folder, time_offset):
-
+    """
+    Loads SleepRecording data from the specified folder using the given time_offset.
+    Returns a SleepRecording object with the loaded data.
+    """
     serialNumber = None
     subdirs = [x[0] for x in os.walk(data_folder)]
     if len(subdirs) == 2:
@@ -576,10 +598,15 @@ def load_data(data_folder, time_offset):
     else:
         return
 
+    # Look for SN (=Serial number) in the filename.
     if 'SN' in acc_file:
         match = re.search(r'SN\d+', acc_file)
         if match:
             serialNumber = match.group()
+    else: # take the first string preceding acc/gyrofeatures
+        serialNumber = os.path.basename(acc_file).split('_')[0][:-1]
+        if 'AccFeatures' in serialNumber:
+            serialNumber = None
 
     feature_df = read_and_process_features(acc_path=acc_file, gyro_path=gyro_file, time_offset=time_offset)   
 
@@ -610,27 +637,30 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
     # MAIN PAGE
     pdf.add_page()
     main_fig, main_axes = make_main_fig(recording, wear_idx, options, main_page=True)
-    main_fig_path = os.path.join(tmp_dir, "temp_main_fig.png")
+    main_fig_path = os.path.join(tmp_dir, "main_fig.png")
     main_fig.savefig(main_fig_path, dpi=options['report_dpi'])
     plt.close(main_fig)
 
     # Template background
     pdf.image("templates/nappa_report_template.png", x=0, y=0, w=210, h=297)
     pdf.image(main_fig_path, x=6, y=35, w=195, h=130)
-    os.remove(main_fig_path)
+    if not options['figures_output']:
+        os.remove(main_fig_path)
 
     pdf.set_font("helvetica", "", 10)
     pdf.set_text_color(0, 0, 0)
     
     pdf.text(20, 10,f'NAPPA Summary{" "*30}{str(recording.start)[0:16]}  -  {str(recording.end)[0:16]}{" "*30}{recording.serial_number if recording.serial_number else "Unknown Serial"}')
 
-    pdf.text(25, 254, f'Recording time: {str(sleep_statistics["total_time"])[:-3]}')
-    pdf.text(25, 259, f'Total sleep time: {str(sleep_statistics["total_sleep"])[:-3]}')
-    pdf.text(25, 264, f'Nonwear time: {str(sleep_statistics["nonwear_time"])[:-3]}')
+    if options['summary_sleep_stats']:
+        pdf.text(25, 254, f'Recording time: {str(sleep_statistics["total_time"])[:-3]}')
+        pdf.text(25, 259, f'Total sleep time: {str(sleep_statistics["total_sleep"])[:-3]}')
+        pdf.text(25, 264, f'Nonwear time: {str(sleep_statistics["nonwear_time"])[:-3]}')
+        #pdf.text(25, 269, f'Number of awakenings during sleep: {str(sleep_statistics["awakenings"])}')
 
     # If more than 1 day, add a bar/violin summary
     if sleep_statistics["total_time"].days >= 1:
-        dist_fig_path = os.path.join(tmp_dir, "temp_dist_fig.png")
+        dist_fig_path = os.path.join(tmp_dir, "dist_fig.png")
         if options['plots']['summary_fig'] == 'bar':
             make_bar_fig(recording, wear_idx, options)
             plt.savefig(dist_fig_path, dpi=options['report_dpi'])
@@ -641,7 +671,9 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
             plt.savefig(dist_fig_path, dpi=options['report_dpi'])
             plt.close()
             pdf.image(dist_fig_path, x=6, y=165, w=190, h=76)
-        os.remove(dist_fig_path)
+
+        if not options['figures_output']:
+            os.remove(dist_fig_path)
 
     # SUBSEQUENT PAGES
     if options['multipage']:
@@ -656,6 +688,7 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
             if status_callback:
                 status_callback(f"Status: {msg}")
 
+            print(period_start, period_end)
             sleep_period = SleepRecording(
                 features=recording.features.loc[period_start:period_end],
                 labels=recording.labels.loc[period_start:period_end]
@@ -665,28 +698,34 @@ def generate_pages(recording, tmp_dir, wear_idx, options, status_callback=None):
 
             pdf.add_page()
             sub_main_fig, _ = make_main_fig(sleep_period, sub_wear_idx, options, main_page=False)
-            sub_main_fig_path = os.path.join(tmp_dir, f"temp_main_fig_{i}.png")
+            sub_main_fig_path = os.path.join(tmp_dir, f"main_fig_{i}.png")
             sub_main_fig.savefig(sub_main_fig_path, dpi=options['report_dpi'])
             plt.close(sub_main_fig)
 
-            donut_fig, _ = make_donut_fig(sleep_period, sub_wear_idx)
-            donut_fig_path = os.path.join(tmp_dir, f"temp_donut_fig_{i}.png")
-            donut_fig.savefig(donut_fig_path, dpi=options['report_dpi'])
-            plt.close(donut_fig)
+            if options['plots']['donut']:
+                donut_fig, _ = make_donut_fig(sleep_period, sub_wear_idx)
+                donut_fig_path = os.path.join(tmp_dir, f"donut_fig_{i}.png")
+                donut_fig.savefig(donut_fig_path, dpi=options['report_dpi'])
+                plt.close(donut_fig)
 
             pdf.image("templates/nappa_report_template.png", x=0, y=0, w=210, h=297)
             pdf.image(sub_main_fig_path, x=6, y=35, w=195, h=130)
-            pdf.image(donut_fig_path, x=12, y=165, w=100, h=100)
+            if not options['figures_output']:
+                os.remove(sub_main_fig_path)
 
-            os.remove(sub_main_fig_path)
-            os.remove(donut_fig_path)
+            if options['plots']['donut']:
+                pdf.image(donut_fig_path, x=12, y=165, w=100, h=100)
+                if not options['figures_output']:
+                    os.remove(donut_fig_path)
 
             pdf.text(20, 10, f'Sleep period {i+1}/{len(wear_blocks)}')
             pdf.text(80, 10, f'{str(sleep_period.start)[0:16]}  -  {str(sleep_period.end)[0:16]}')
 
-            pdf.text(110, 174, f'Recording time: {str(sp_statistics["total_time"])[:-3]}')
-            pdf.text(110, 179, f'Nonwear time: {str(sp_statistics["nonwear_time"])[:-3]}')
-            pdf.text(110, 184, f'Total sleep time: {str(sp_statistics["total_sleep"])[:-3]}')
+            if options['subsequent_sleep_stats']:
+                pdf.text(110, 174, f'Recording time: {str(sp_statistics["total_time"])[:-3]}')
+                pdf.text(110, 179, f'Nonwear time: {str(sp_statistics["nonwear_time"])[:-3]}')
+                pdf.text(110, 184, f'Total sleep time: {str(sp_statistics["total_sleep"])[:-3]}')
+               #pdf.text(110, 189, f'Number of awakenings during sleep: {str(sp_statistics["awakenings"])}')
 
     return pdf
 
@@ -758,7 +797,9 @@ def nappa_analysis(recording, wear_idx, output_file, tempfolder, options=None, s
     zf = zipfile.ZipFile(output_file, mode="w")
     
     if options['pdf_output']:
+
         pdf = generate_pages(
+
                 recording=analyzedRecording,
                 options=options,
                 wear_idx=wear_idx,
@@ -771,21 +812,31 @@ def nappa_analysis(recording, wear_idx, output_file, tempfolder, options=None, s
             status_callback(msg)
         logger.info(msg)
 
-        rec_ID = analyzedRecording.serial_number if analyzedRecording.serial_number else "" + "_" + str(analyzedRecording.start.date())
-        output = os.path.join(tempfolder, "NAPPA_") +  rec_ID + "_" + ".pdf"
+        sn = analyzedRecording.serial_number if analyzedRecording.serial_number else ""
+        fname = "NAPPA_" + sn + "_" + str(analyzedRecording.start.date()) + ".pdf"
+        output = os.path.join(tempfolder, fname) 
+
         pdf.output(output)
         zf.write(output, os.path.basename(output))    
     
     if options['csv_output']:
-        msg="Status: writing .pdf output file..."
+        msg="Status: writing .csv output file..."
         if status_callback:
             status_callback(msg)
         logger.info(msg)
     
         output = os.path.join(tempfolder, 'output.csv')
-        df = pd.concat([analyzedRecording.features, analyzedRecording.labels], axis=1)
-        df.to_csv(output, date_format='%Y-%m-%d %H:%M:%S')
+        analyzedRecording.save(output)
         zf.write(output, os.path.basename(output))
+
+    if options['figures_output']:
+        msg="Status: saving figures as PNG files..."
+        if status_callback:
+            status_callback(msg)
+        logger.info(msg)
+    
+        for png_file in glob.glob(os.path.join(tempfolder, '*.png')):
+            zf.write(png_file, os.path.basename(png_file))
 
     zf.close()
 

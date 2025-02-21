@@ -1,20 +1,34 @@
 import os
 import torch
 import torch.nn as nn
+import pandas as pd
+import numpy as np
+
 from concurrent.futures import ProcessPoolExecutor
 
+from .pipeline import select_default_features
 
 class NappaModel(nn.Module):
-    def predict(self, x: torch.Tensor) -> torch.Tensor:
+    def predict(self, x):
         """
         Predict labels for the given features of a sleep recording.
 
         Args:
-            x (Tensor): The feature matrix of a sleep recording.
+            x (torch.Tensor, np.ndarray or pd.DataFrame): The feature matrix of a sleep recording.
 
         Returns:
             Tensor: Probability distribution of the classes at each time step and the predicted classes.
         """
+        x_type = type(x)
+        if x.shape[0] != 5:
+            x = select_default_features(x)
+        
+        if x_type == pd.DataFrame:
+            timestamps = x.index
+            x = torch.tensor(x.to_numpy(), dtype=torch.float32)
+        elif x_type == np.ndarray:
+            x = torch.tensor(x, dtype=torch.float32)
+
         self.eval()
         with torch.no_grad():
             output = self.forward(x)
@@ -25,7 +39,16 @@ class NappaModel(nn.Module):
             # Predicted class for each timestep (integer)
             p_classes = torch.argmax(p_dist, dim=-1)
 
-        return torch.cat([p_classes.unsqueeze(-1), p_dist], dim=1)
+        # First column: predicted class, rest of the columns: class probabilities
+        y = torch.cat([p_classes.unsqueeze(-1), p_dist], dim=1)
+
+        if x_type == pd.DataFrame:
+            y = pd.DataFrame(y.numpy(), columns=['sleep_stage', 'p(deep)', 'p(light)', 'p(wake)'], index=timestamps)
+            y['sleep_stage'] = y['sleep_stage'].replace({0:'deep', 1:'light', 2:'wake'})
+        elif x_type == np.ndarray:
+            y = y.numpy()
+
+        return y
 
     def load(self, weight_file: str):
         self.load_state_dict(torch.load(weight_file, map_location=self.device, weights_only=True))

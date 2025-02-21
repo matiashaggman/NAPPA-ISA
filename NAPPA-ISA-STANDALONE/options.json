@@ -13,6 +13,9 @@
         "subsequent_respiration_rate": true,
         "subsequent_position": true
     },
+    "figures_output": false,
+    "subsequent_sleep_stats": true,
+    "summary_sleep_stats": true,
     "time_offset": 2,
     "median_filter": true,
     "filter_window": 19,
