@@ -78,9 +78,9 @@
      - Baby activity, respiration rate, and body position data as functions of time
      - Bar/violin plots for overall sleep distribution
      - A donut plot for individual sleep periods visualizing the distribution of sleep stages.
-     - 
+     - Text summary containing the number of hours spent in different sleep stages
    - A **CSV** file with the classifier output, sleep depth trend and the recorded feature data from the wearable sensor
-
+   - PNG files of the report figures separately
 ---
 
 ## Project Structure
