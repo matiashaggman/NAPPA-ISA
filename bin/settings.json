@@ -22,7 +22,7 @@
             "multipage": true
         },
         "output_formats": {
-            "csv": false,
+            "csv": true,
             "figures": false,
             "pdf": true
         },
@@ -38,7 +38,7 @@
             "activity": true,
             "position": true,
             "respiration_rate": true,
-            "sdt": true,
+            "sdt": false,
             "sdt_ci": false,
             "sleep_statistics": true,
             "summaryfig": "bar"
@@ -48,7 +48,7 @@
             "donut": true,
             "position": true,
             "respiration_rate": true,
-            "sdt": true,
+            "sdt": false,
             "sdt_ci": false,
             "sleep_statistics": true
         }

@@ -40,7 +40,7 @@
 
 ### Using the Client version (`NAPPA-ISA Client.exe` on Windows)
 
-1. **Download** the contents of the `bin` directory.
+1. **Download** `bin.zip` (contents of the bin directory).
 2. **Keep files together**: All downloaded contents must remain in the **same directory** for the application to work properly.
 3. **Run** NAPPA-ISA Client.exe
 ---
