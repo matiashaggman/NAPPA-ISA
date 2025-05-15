@@ -18,29 +18,20 @@
 ## Screenshots
 
 <p align="center">
-  <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/tree/main/src/example_report_1.png?raw=true" 
-    alt="Example report screenshot" 
-    width="400"
-  />
-    <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/tree/main/src/example_report_2.png?raw=true" 
-    alt="Example report screenshot" 
-    width="400"
-  />
-   <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/tree/main/src/ui_1.png?raw=true" 
-    alt="UI screenshot" 
-    width="400"
-    style="margin-right: 20px;"
-  />
-    <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/tree/main/src/ui_2.png?raw=true" 
-    alt="UI screenshot" 
-    width="400"
-    style="margin-right: 20px;"
-  />
+  <img
+    src="https://raw.githubusercontent.com/matiashaggman/NAPPA-ISA/main/src/example_report_1.png"
+    alt="Example report page 1" width="400" />
+  <img
+    src="https://raw.githubusercontent.com/matiashaggman/NAPPA-ISA/main/src/example_report_2.png"
+    alt="Example report page 2" width="400" />
+  <img
+    src="https://raw.githubusercontent.com/matiashaggman/NAPPA-ISA/main/src/ui_1.png"
+    alt="UI screenshot 1" width="400" />
+  <img
+    src="https://raw.githubusercontent.com/matiashaggman/NAPPA-ISA/main/src/ui_2.png"
+    alt="UI screenshot 2" width="400" />
 </p>
+
 
 ---
 
