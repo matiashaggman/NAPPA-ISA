@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="logo">
+    <file>nappa_icon.png</file>
+    <file>baba-logo.png</file>
+  </qresource>
+</RCC>
