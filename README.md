@@ -19,13 +19,24 @@
 
 <p align="center">
   <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/ui.png?raw=true" 
+    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/ui_1.png?raw=true" 
+    alt="UI screenshot" 
+    width="400"
+    style="margin-right: 20px;"
+  />
+    <img 
+    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/ui_2.png?raw=true" 
     alt="UI screenshot" 
     width="400"
     style="margin-right: 20px;"
   />
   <img 
-    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/example_report.png?raw=true" 
+    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/example_report_1.png?raw=true" 
+    alt="Example report screenshot" 
+    width="300"
+  />
+    <img 
+    src="https://github.com/matiashaggman/NAPPA-ISA/blob/main/example_report_2.png?raw=true" 
     alt="Example report screenshot" 
     width="300"
   />
