@@ -3,7 +3,7 @@ import numpy as np
 import seaborn as sns
 from matplotlib import lines as mlines
 
-def caltrendwithCI0(probability_signal):
+def SleepDepthTrend0(probability_signal):
 
     # Authors: Saeed Montazeri / Jukka Ranta
 
@@ -57,7 +57,7 @@ def caltrendwithCI0(probability_signal):
     return weightedavg, lowerlim, upperlim
 
 
-def caltrendwithCI(probability_signal):
+def SleepDepthTrend(probability_signal):
     """
     Compute the weighted average trend estimate and confidence intervals. 
     Parameters:
@@ -150,7 +150,7 @@ def plot_time_series(labels, predicted_probabilities,
     ax1.autoscale(enable=True, axis='x', tight=True)
 
     # Plot SDT
-    [weightedavg, lowerlim, upperlim] = caltrendwithCI(predicted_probabilities)
+    [weightedavg, lowerlim, upperlim] = SleepDepthTrend(predicted_probabilities)
     ax2.set_title(titles[1])
     ax2.plot(time, weightedavg, color='C0', linewidth=2, label='Weighted Average')
     ax2.fill_between(time, upperlim[:,0], lowerlim[:,0], color='C0', alpha=0.3, label='Confidence Interval')

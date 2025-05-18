@@ -22,15 +22,37 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="isa\analysis.py" />
+    <Compile Include="isa\api.py" />
+    <Compile Include="isa\core\io.py" />
+    <Compile Include="isa\core\plots.py" />
+    <Compile Include="isa\core\report.py" />
+    <Compile Include="isa\core\wear.py" />
+    <Compile Include="isa\core\__init__.py" />
+    <Compile Include="isa\__init__.py" />
     <Compile Include="nappa\models.py" />
     <Compile Include="nappa\objects.py" />
     <Compile Include="nappa\pipeline.py" />
     <Compile Include="nappa\plots.py" />
     <Compile Include="nappa\preprocess.py" />
-    <Compile Include="nappa_isa.py" />
+    <Compile Include="nappa\__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="isa\" />
+    <Folder Include="isa\core\" />
+    <Folder Include="isa\core\__pycache__\" />
+    <Folder Include="isa\__pycache__\" />
     <Folder Include="nappa\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="isa\core\__pycache__\io.cpython-310.pyc" />
+    <Content Include="isa\core\__pycache__\plots.cpython-310.pyc" />
+    <Content Include="isa\core\__pycache__\report.cpython-310.pyc" />
+    <Content Include="isa\core\__pycache__\wear.cpython-310.pyc" />
+    <Content Include="isa\core\__pycache__\__init__.cpython-310.pyc" />
+    <Content Include="isa\__pycache__\analysis.cpython-310.pyc" />
+    <Content Include="isa\__pycache__\api.cpython-310.pyc" />
+    <Content Include="isa\__pycache__\__init__.cpython-310.pyc" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

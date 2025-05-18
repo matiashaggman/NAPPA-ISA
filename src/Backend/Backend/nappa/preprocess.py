@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from .objects import NappaDataset
+from nappa.objects import NappaDataset
 
 
 class StandardScaler:

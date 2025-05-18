@@ -6,7 +6,7 @@ import numpy as np
 
 from concurrent.futures import ProcessPoolExecutor
 
-from .pipeline import select_default_features
+from nappa.pipeline import select_default_features
 
 
 class NappaModel(nn.Module):

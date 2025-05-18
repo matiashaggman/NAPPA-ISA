@@ -1,9 +1,9 @@
 import os
 import json
 import pandas as pd
-import numpy as np
 
-from .objects import NappaDataset, SleepRecording
+from nappa.objects import NappaDataset, SleepRecording
+
 
 def read_and_process_hypnogram(hypno_path, cfg):
     
