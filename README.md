@@ -78,13 +78,13 @@
 | **`src/Frontend/Common/`**                                | Header-only shared code & `inAppPlugin.h` (plug-in extension API).                                                                                        |
 | **`src/Frontend/Frontend/`**                              | Main GUI project<br>• `main.cpp`, `NappaMainWindow.*`, `SettingsWindow.*`<br>• *.ui* files from Qt Designer<br>• `Frontend.vcxproj` plus icons/resources. |
 | **`src/Frontend/NappaPlugin/`**                           | Example plug-in project (`NappaPlugin.dll`, `plugin.json`) showing how to extend the app at run-time.                                                     |
-| **`src/Frontend/`** – `build_pc.bat` / `build_laptop.bat` | One-click scripts that run **windeployqt**, package the binaries, and zip them for distribution.                                                          |                                                                                        |
-
-                                                                                                                             |
+| **`src/Frontend/`** – `build_pc.bat` / `build_laptop.bat` | One-click scripts that run **windeployqt**, package the binaries, and zip them for distribution.                                                          |                                                    
 
 
 ### Server side (lightning.ai based)
-- **`src/Backend/nappa-isa.py`**: Server side core analysis functions and utilities.  
+- **`src/Backend/isa/api.py`**: Server side api
+- **`src/Backend/isa/analysis.py`**: Entry point
+-  **`src/Backend/isa/core`**: Utilities for report generation & analysis
 - **`src/Backend/nappa/preprocess.py`**: Data preprocessing and scaling functions.  
 - **`src/Backend/nappa/pipeline.py`**: Routines for reading and processing feature files.  
 - **`src/Backend/nappa/objects.py`**: Classes for organizing sensor data.  
