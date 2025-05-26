@@ -5,9 +5,9 @@ rem  EDIT the three paths below, then run the script.
 
 setlocal
 
-set "APP=C:\Users\matia\My Drive\BABA\NAPPA-ISA\src\Frontend\x64\Release\NAPPA-ISA Client.exe"
-set "STAGE=C:\Users\matia\My Drive\BABA\NAPPA-ISA\bin"
-set "QT_BIN=C:\Qt\6.7.3\msvc2022_64\bin"
+set "APP=PATH TO PROJECT\x64\Release\NAPPA-ISA Client.exe"
+set "STAGE=PATH TO PROJECT\bin"
+set "QT_BIN=D:\Qt\6.7.3\msvc2022_64\bin"
 
 echo(
 echo  Packaging "%APP%"

@@ -151,18 +151,14 @@ def generate_pages_parallel(
     pdf.set_font("helvetica", "", 10)
     pdf.text(
         20, 10,
-        f"NAPPA Summary{' '*20}"
-        f"{str(recording.start)[:16]} - {str(recording.end)[:16]}{' '*20}"
+        f"NAPPA Summary{' '*30}"
+        f"{str(recording.start)[:16]} - {str(recording.end)[:16]}{' '*30}"
         f"{recording.serial_number or 'Unknown Serial'}"
     )
     if settings['visualization']['main_page']['sleep_statistics']:
-        total_time = timedelta(seconds=sleep_statistics["total_time"].seconds)
-        total_sleep = timedelta(seconds=sleep_statistics["total_sleep"].seconds)
-        nonwear_time = timedelta(seconds=sleep_statistics["nonwear_time"].seconds)
-
-        pdf.text(25, 264, f'Recording time: {str(total_time)[:-3]}')
-        pdf.text(25, 269, f'Total sleep time: {str(total_sleep)[:-3]}')
-        pdf.text(25, 274, f'Nonwear time: {str(nonwear_time)[:-3]}')
+        pdf.text(25, 264, f'Recording time: {str(sleep_statistics["total_time"])[:-3]}')
+        pdf.text(25, 269, f'Total sleep time: {str(sleep_statistics["total_sleep"])[:-3]}')
+        pdf.text(25, 274, f'Nonwear time: {str(sleep_statistics["nonwear_time"])[:-3]}')
 
     if isinstance(sleep_statistics["total_time"], timedelta) and sleep_statistics["total_time"].days >= 1:
         dist_png = os.path.join(tmp_dir, "dist_fig.png")

@@ -37,28 +37,40 @@ def get_ip_location(ip):
 
 @app.post("/startup")
 async def startup_info(payload: dict):
-    ip = payload.get("IP")
-    location = None
-    if ip:
-        location = get_ip_location(ip)
-    
-    if location:
-        country = location.get("country", "Unknown")
-        city = location.get("city", "Unknown")
-        payload["location"] = f"{country}, {city}"
 
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
 
-    log_df = pd.read_csv("log.csv")
+        ip = payload.get("ip")
+        location = None
+        if ip:
+            location = get_ip_location(ip)
+        
+        if location:
+            country = location.get("country", "Unknown")
+            city = location.get("city", "Unknown")
+            payload["location"] = f"{country}, {city}"
 
-    log_row = {'time':current_time, 'ip':ip, 'location': payload['location'],
-     'app_version':payload['app_version'], 'machine_name':payload['machine_name'], 
-     'os_version':payload['os_version']}
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    print(f'User connected with payload: f{log_row}')
+        log_df = pd.read_csv("log.csv")
+        if log_df.empty:
+            log_df = pd.DataFrame(columns=['time', 'ip', 'location', 'app_version', 'machine_name', 'os_version'])
+        
+        location = payload.get("location", "Unknown")
+        app_version = payload.get("app_version", "Unknown")
+        machine_name = payload.get("machine_name", "Unknown")
+        os_version = payload.get("os_version", "Unknown")
+        log_row = {'time':current_time, 'ip':ip, 'location': location,
+        'app_version':app_version, 'machine_name':machine_name, 
+        'os_version':os_version}
 
-    log_df.loc[len(log_df)] = log_row
-    log_df.to_csv("log.csv", index=False)
+        print(f'User connected with payload: f{log_row}')
+
+        log_df.loc[len(log_df)] = log_row
+        log_df.to_csv("log.csv", index=False)
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(f"Error in startup_info: {str(e)}\n{traceback_str}")
 
     return {"status": "received"}
 
@@ -165,7 +177,7 @@ async def nappa_online_analysis(
 
         output_path = os.path.join(tempfolder, output_filename)
 
-        zip_path = os.path.join(tempfolder, zip_archive.filename) #type:ignore
+        zip_path = os.path.join(tempfolder, zip_archive.filename)   #type:ignore
         settings_path = os.path.join(tempfolder, settings.filename) #type:ignore
 
         with open(zip_path, "wb") as f:

@@ -454,26 +454,14 @@ def make_main_fig(recording, wear_idx, settings, isMainPage):
         case _:
             date_fmt = mdates.DateFormatter('%H:%M')
 
-    # if recording.duration <= pd.Timedelta(days=1):
-    #     # If total duration is less than a day, show only hours and minutes
-    #     date_fmt = mdates.DateFormatter('%H:%M')
-    #     plt.locator_params(axis='x', nbins=12) 
-    # else:
-    #     #locator = mdates.AutoDateLocator(minticks=settings['report']['quality']['x_axis_ticks'], maxticks=settings['report']['quality']['x_axis_ticks'])
-    #     locator = plt.gca().xaxis.get_major_locator()
-    #     locator.set_params(nbins=settings['report']['quality']['x_axis_ticks'])  
-    #     #plt.locator_params(axis='x', nbins=settings['report']['quality']['x_axis_ticks'])
     ax = plt.gca()
     if recording.duration <= pd.Timedelta(days=1):
-        ax.xaxis.set_major_locator(
-            mdates.AutoDateLocator(minticks=12, maxticks=12))
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=12, maxticks=12))
     else:
         nt = settings['report']['quality']['x_axis_ticks']
-        ax.xaxis.set_major_locator(
-            mdates.AutoDateLocator(minticks=nt, maxticks=nt))
-        #axes[-1].xaxis.set_major_locator(locator)
-        axes[-1].xaxis.set_major_formatter(date_fmt)
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=nt, maxticks=nt))
+    
+    ax.xaxis.set_major_formatter(date_fmt)
 
     #plt.tight_layout()
     return fig, axes

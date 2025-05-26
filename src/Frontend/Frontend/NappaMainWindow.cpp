@@ -541,11 +541,9 @@ void NappaMainWindow::fetchPublicIP() {
 void NappaMainWindow::connectToServer(const QString& ownIp) {
 
     this->publicIP = ownIp;
-
-    this->userData["machine_name"] = QSysInfo::machineHostName();
     this->userData["os_version"] = QSysInfo::prettyProductName();
     this->userData["app_version"] = this->version;
-    this->userData["IP"] = this->publicIP;
+    this->userData["ip"] = this->publicIP;
 
     ThreadWorker* worker = new ThreadWorker(this, "", "", this->settingsPath,
         this->userData, ThreadWorker::Start);

@@ -15,7 +15,7 @@
         "filtering": {
             "median_filter": true,
             "nonwear": true,
-            "window_size": 19
+            "window_size": 11
         },
         "layout": {
             "auto_page_generation": true,
@@ -38,7 +38,7 @@
             "activity": true,
             "position": true,
             "respiration_rate": true,
-            "sdt": false,
+            "sdt": true,
             "sdt_ci": false,
             "sleep_statistics": true,
             "summaryfig": "bar"
@@ -48,7 +48,7 @@
             "donut": true,
             "position": true,
             "respiration_rate": true,
-            "sdt": false,
+            "sdt": true,
             "sdt_ci": false,
             "sleep_statistics": true
         }

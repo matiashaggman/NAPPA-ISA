@@ -6,21 +6,21 @@ import glob
 import zipfile
 import copy
 
-from isa.core.plots import init_plot_style
-from isa.core.report import generate_pages_parallel
+from isa.core.plots     import init_plot_style
+from isa.core.report    import generate_pages_parallel
 
-from nappa.objects import SleepRecording
-from nappa.preprocess import StandardScaler
-from nappa.pipeline import select_default_features
-from nappa.models import NappaSleepNet
-from nappa.plots import SleepDepthTrend
+from nappa.preprocess   import StandardScaler
+from nappa.objects      import SleepRecording
+from nappa.pipeline     import select_default_features
+from nappa.models       import NappaSleepNet
+from nappa.plots        import SleepDepthTrend
 
 FEATURE_MEANS = np.array([0.28299643,  0.40674336, 27.51102132,  1.25385624,  1.54872324])
 FEATURE_STDS  = np.array([1.08733522,  0.34976171, 46.77687801,  3.8659115,   9.01733374])
 
 
-def nappa_analysis(recording, wear_idx, output_file,
-                    tempfolder, settings):
+def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str,
+                    tempfolder:str, settings:dict):
     """
     End-to-end NAPPA analysis pipeline.
 
@@ -85,7 +85,7 @@ def nappa_analysis(recording, wear_idx, output_file,
         end = recording.end
 
     features = recording.features[start:end]
-    wear_idx = wear_idx[start:end]
+    wear_idx = wear_idx[start:end] #type:ignore
 
     scaler = StandardScaler(method='global')
 

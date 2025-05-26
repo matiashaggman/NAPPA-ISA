@@ -59,5 +59,5 @@ private:
     INappaPlugin* plugin{ nullptr };
 
 	const QString settingsPath = "settings.json";
-	const QString version = "1.3";
+	const QString version = "1.4";
 };
