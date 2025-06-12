@@ -47,7 +47,7 @@ def get_sleep_statistics(
     light_sleep  = timedelta(seconds=stage_counts.get('light', 0) * 30.0)
     deep_sleep   = timedelta(seconds=stage_counts.get('deep', 0) * 30.0)
     nonwear_time = timedelta(seconds=np.sum(~wear_idx) * 30.0)
-    total_sleep = light_sleep + deep_sleep
+    total_sleep  = light_sleep + deep_sleep
 
     for i, (idx, row) in enumerate(recording.labels.iterrows()):
         if row['sleep_stage'] == 'wake':
@@ -75,14 +75,14 @@ def _render_subpage(args) -> tuple:
     )
     sub_wear_idx = wear_idx.loc[period[0]:period[1]]
 
-    # ── main timeline figure ───────────────────────────────
+    # main timeline figure (inc. sleep stages, activity, etc.)
     main_fig, _ = make_main_fig(
         sleep_period, sub_wear_idx, settings, isMainPage=False)
     main_png = os.path.join(tmp_dir, f"main_fig_{idx}.png")
     main_fig.savefig(main_png, dpi=settings['report']['quality']['dpi'])
     plt.close(main_fig)
 
-    # ── optional donut figure ──────────────────────────────
+    # optional donut figure
     donut_png = None
     if settings['visualization']['subsequent_pages']['donut']:
         donut_fig, _ = make_donut_fig(sleep_period, sub_wear_idx)

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Common/inAppPlugin.h"
-
 #include "UiMainWindow.h"
 #include "UiSettingsWindow.h"
 
@@ -26,13 +24,14 @@ private slots:
     void onBrowseInputButtonClicked();
     void onBrowseOutputButtonClicked();
     void onSelectPeriodsButtonClicked();
+	void onUtcOffsetApplyButtonClicked();
     void onAnalyzeButtonClicked();
 
-    void onUpdateStatus(const float statusCode, const QString& msg = QString());
+
+	void onUpdateStatus(const float statusCode, const QString& msg = QString());
     void onImportFinished(const QJsonObject& response);
-
-
-    void connectToServer(const QString& ownIp);
+    void onUpdateRequestFinished(const QJsonObject& response);
+    void connectToServerAndFetchUpdate(const QString& ownIp);
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override;
@@ -40,7 +39,7 @@ protected:
 
 private:
     void initUI();
-	void loadPlugin(const QString& path);
+	//void loadPlugin(const QString& path);
     void loadSettings(const QString&);
     void refreshSettings();
     void saveSettings(const QString&);
@@ -55,9 +54,9 @@ private:
     QJsonObject userData;
     QString publicIP;
     
-    QPluginLoader* pluginLoader_{ nullptr };
-    INappaPlugin* plugin{ nullptr };
+    //QPluginLoader* pluginLoader_{ nullptr };
+    //INappaPlugin* plugin{ nullptr };
 
 	const QString settingsPath = "settings.json";
-	const QString version = "1.4";
+	const QString version = "1.5";
 };

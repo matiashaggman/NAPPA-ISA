@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'main_windowJQkiyT.ui'
+** Form generated from reading UI file 'main_windowaCEbwG.ui'
 **
 ** Created by: Qt User Interface Compiler version 6.7.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef MAIN_WINDOWJQKIYT_H
-#define MAIN_WINDOWJQKIYT_H
+#ifndef MAIN_WINDOWACEBWG_H
+#define MAIN_WINDOWACEBWG_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
@@ -35,10 +35,10 @@ public:
     QGridLayout* gridLayout_5;
     QGroupBox* informationGroupBox;
     QGridLayout* gridLayout_4;
-    QLabel* label_4;
     QLabel* appVersionLabel;
+    QLabel* label_4;
+    QLabel* appStatusLabel;
     QLabel* githubLabel;
-    QLabel* pluginVersionLabel;
     QGroupBox* dataVisualizationGroupBox;
     QGridLayout* gridLayout;
     QTabWidget* tabWidget;
@@ -73,21 +73,23 @@ public:
     QCheckBox* positionSubsqBox;
     QGroupBox* settingsGroupBox;
     QGridLayout* gridLayout_8;
-    QLabel* startTimeLabel;
     QLabel* durationLabel;
-    QSpinBox* timeOffsetSpinBox;
+    QLabel* sleepPeriodsLabel;
+    QLabel* endTimeLabel;
+    QDateTimeEdit* endTime;
     QPushButton* selectPeriodsButton;
     QLabel* durationTitleLabel;
     QLabel* utcOffsetLabel;
-    QLabel* endTimeLabel;
-    QPushButton* advancedSettingsButton;
-    QDateTimeEdit* endTime;
-    QDateTimeEdit* startTime;
     QLabel* sleepPeriodsTitleLabel;
-    QLabel* sleepPeriodsLabel;
+    QDateTimeEdit* startTime;
+    QLabel* startTimeLabel;
+    QPushButton* advancedSettingsButton;
+    QHBoxLayout* horizontalLayout_2;
+    QSpinBox* timeOffsetSpinBox;
+    QPushButton* UtcOffsetApplyButton;
     QGroupBox* analysisGroupBox;
     QHBoxLayout* horizontalLayout;
-    QLabel* statusLabel;
+    QLabel* analysisStatusLabel;
     QPushButton* analyzeButton;
     QGroupBox* dataGroupBox;
     QGridLayout* gridLayout_2;
@@ -133,13 +135,6 @@ public:
         informationGroupBox->setSizePolicy(sizePolicy1);
         gridLayout_4 = new QGridLayout(informationGroupBox);
         gridLayout_4->setObjectName("gridLayout_4");
-        label_4 = new QLabel(informationGroupBox);
-        label_4->setObjectName("label_4");
-        sizePolicy1.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
-        label_4->setSizePolicy(sizePolicy1);
-
-        gridLayout_4->addWidget(label_4, 0, 0, 1, 1);
-
         appVersionLabel = new QLabel(informationGroupBox);
         appVersionLabel->setObjectName("appVersionLabel");
         sizePolicy1.setHeightForWidth(appVersionLabel->sizePolicy().hasHeightForWidth());
@@ -147,18 +142,25 @@ public:
 
         gridLayout_4->addWidget(appVersionLabel, 1, 0, 1, 1);
 
+        label_4 = new QLabel(informationGroupBox);
+        label_4->setObjectName("label_4");
+        sizePolicy1.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
+        label_4->setSizePolicy(sizePolicy1);
+
+        gridLayout_4->addWidget(label_4, 0, 0, 1, 1);
+
+        appStatusLabel = new QLabel(informationGroupBox);
+        appStatusLabel->setObjectName("appStatusLabel");
+
+        gridLayout_4->addWidget(appStatusLabel, 2, 0, 1, 1);
+
         githubLabel = new QLabel(informationGroupBox);
         githubLabel->setObjectName("githubLabel");
         sizePolicy1.setHeightForWidth(githubLabel->sizePolicy().hasHeightForWidth());
         githubLabel->setSizePolicy(sizePolicy1);
         githubLabel->setOpenExternalLinks(true);
 
-        gridLayout_4->addWidget(githubLabel, 1, 1, 1, 1);
-
-        pluginVersionLabel = new QLabel(informationGroupBox);
-        pluginVersionLabel->setObjectName("pluginVersionLabel");
-
-        gridLayout_4->addWidget(pluginVersionLabel, 2, 0, 1, 1);
+        gridLayout_4->addWidget(githubLabel, 2, 1, 1, 1);
 
 
         gridLayout_5->addWidget(informationGroupBox, 0, 0, 1, 1);
@@ -360,49 +362,19 @@ public:
         settingsGroupBox->setSizePolicy(sizePolicy1);
         gridLayout_8 = new QGridLayout(settingsGroupBox);
         gridLayout_8->setObjectName("gridLayout_8");
-        startTimeLabel = new QLabel(settingsGroupBox);
-        startTimeLabel->setObjectName("startTimeLabel");
-        sizePolicy1.setHeightForWidth(startTimeLabel->sizePolicy().hasHeightForWidth());
-        startTimeLabel->setSizePolicy(sizePolicy1);
-
-        gridLayout_8->addWidget(startTimeLabel, 0, 0, 1, 1);
-
         durationLabel = new QLabel(settingsGroupBox);
         durationLabel->setObjectName("durationLabel");
         sizePolicy1.setHeightForWidth(durationLabel->sizePolicy().hasHeightForWidth());
         durationLabel->setSizePolicy(sizePolicy1);
 
-        gridLayout_8->addWidget(durationLabel, 1, 3, 1, 1);
+        gridLayout_8->addWidget(durationLabel, 1, 7, 1, 1);
 
-        timeOffsetSpinBox = new QSpinBox(settingsGroupBox);
-        timeOffsetSpinBox->setObjectName("timeOffsetSpinBox");
-        sizePolicy1.setHeightForWidth(timeOffsetSpinBox->sizePolicy().hasHeightForWidth());
-        timeOffsetSpinBox->setSizePolicy(sizePolicy1);
-        timeOffsetSpinBox->setMinimum(-12);
-        timeOffsetSpinBox->setMaximum(14);
+        sleepPeriodsLabel = new QLabel(settingsGroupBox);
+        sleepPeriodsLabel->setObjectName("sleepPeriodsLabel");
+        sizePolicy1.setHeightForWidth(sleepPeriodsLabel->sizePolicy().hasHeightForWidth());
+        sleepPeriodsLabel->setSizePolicy(sizePolicy1);
 
-        gridLayout_8->addWidget(timeOffsetSpinBox, 1, 2, 1, 1);
-
-        selectPeriodsButton = new QPushButton(settingsGroupBox);
-        selectPeriodsButton->setObjectName("selectPeriodsButton");
-        sizePolicy1.setHeightForWidth(selectPeriodsButton->sizePolicy().hasHeightForWidth());
-        selectPeriodsButton->setSizePolicy(sizePolicy1);
-
-        gridLayout_8->addWidget(selectPeriodsButton, 1, 5, 1, 1);
-
-        durationTitleLabel = new QLabel(settingsGroupBox);
-        durationTitleLabel->setObjectName("durationTitleLabel");
-        sizePolicy1.setHeightForWidth(durationTitleLabel->sizePolicy().hasHeightForWidth());
-        durationTitleLabel->setSizePolicy(sizePolicy1);
-
-        gridLayout_8->addWidget(durationTitleLabel, 0, 3, 1, 1);
-
-        utcOffsetLabel = new QLabel(settingsGroupBox);
-        utcOffsetLabel->setObjectName("utcOffsetLabel");
-        sizePolicy1.setHeightForWidth(utcOffsetLabel->sizePolicy().hasHeightForWidth());
-        utcOffsetLabel->setSizePolicy(sizePolicy1);
-
-        gridLayout_8->addWidget(utcOffsetLabel, 0, 2, 1, 1);
+        gridLayout_8->addWidget(sleepPeriodsLabel, 1, 8, 1, 1);
 
         endTimeLabel = new QLabel(settingsGroupBox);
         endTimeLabel->setObjectName("endTimeLabel");
@@ -410,13 +382,6 @@ public:
         endTimeLabel->setSizePolicy(sizePolicy1);
 
         gridLayout_8->addWidget(endTimeLabel, 0, 1, 1, 1);
-
-        advancedSettingsButton = new QPushButton(settingsGroupBox);
-        advancedSettingsButton->setObjectName("advancedSettingsButton");
-        sizePolicy1.setHeightForWidth(advancedSettingsButton->sizePolicy().hasHeightForWidth());
-        advancedSettingsButton->setSizePolicy(sizePolicy1);
-
-        gridLayout_8->addWidget(advancedSettingsButton, 0, 5, 1, 1);
 
         endTime = new QDateTimeEdit(settingsGroupBox);
         endTime->setObjectName("endTime");
@@ -426,6 +391,35 @@ public:
         endTime->setDateTime(QDateTime(QDate(2024, 1, 2), QTime(9, 0, 0)));
 
         gridLayout_8->addWidget(endTime, 1, 1, 1, 1);
+
+        selectPeriodsButton = new QPushButton(settingsGroupBox);
+        selectPeriodsButton->setObjectName("selectPeriodsButton");
+        sizePolicy1.setHeightForWidth(selectPeriodsButton->sizePolicy().hasHeightForWidth());
+        selectPeriodsButton->setSizePolicy(sizePolicy1);
+
+        gridLayout_8->addWidget(selectPeriodsButton, 1, 9, 1, 1);
+
+        durationTitleLabel = new QLabel(settingsGroupBox);
+        durationTitleLabel->setObjectName("durationTitleLabel");
+        sizePolicy1.setHeightForWidth(durationTitleLabel->sizePolicy().hasHeightForWidth());
+        durationTitleLabel->setSizePolicy(sizePolicy1);
+
+        gridLayout_8->addWidget(durationTitleLabel, 0, 7, 1, 1);
+
+        utcOffsetLabel = new QLabel(settingsGroupBox);
+        utcOffsetLabel->setObjectName("utcOffsetLabel");
+        sizePolicy1.setHeightForWidth(utcOffsetLabel->sizePolicy().hasHeightForWidth());
+        utcOffsetLabel->setSizePolicy(sizePolicy1);
+        utcOffsetLabel->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
+
+        gridLayout_8->addWidget(utcOffsetLabel, 0, 2, 1, 1);
+
+        sleepPeriodsTitleLabel = new QLabel(settingsGroupBox);
+        sleepPeriodsTitleLabel->setObjectName("sleepPeriodsTitleLabel");
+        sizePolicy1.setHeightForWidth(sleepPeriodsTitleLabel->sizePolicy().hasHeightForWidth());
+        sleepPeriodsTitleLabel->setSizePolicy(sizePolicy1);
+
+        gridLayout_8->addWidget(sleepPeriodsTitleLabel, 0, 8, 1, 1);
 
         startTime = new QDateTimeEdit(settingsGroupBox);
         startTime->setObjectName("startTime");
@@ -438,19 +432,38 @@ public:
 
         gridLayout_8->addWidget(startTime, 1, 0, 1, 1);
 
-        sleepPeriodsTitleLabel = new QLabel(settingsGroupBox);
-        sleepPeriodsTitleLabel->setObjectName("sleepPeriodsTitleLabel");
-        sizePolicy1.setHeightForWidth(sleepPeriodsTitleLabel->sizePolicy().hasHeightForWidth());
-        sleepPeriodsTitleLabel->setSizePolicy(sizePolicy1);
+        startTimeLabel = new QLabel(settingsGroupBox);
+        startTimeLabel->setObjectName("startTimeLabel");
+        sizePolicy1.setHeightForWidth(startTimeLabel->sizePolicy().hasHeightForWidth());
+        startTimeLabel->setSizePolicy(sizePolicy1);
 
-        gridLayout_8->addWidget(sleepPeriodsTitleLabel, 0, 4, 1, 1);
+        gridLayout_8->addWidget(startTimeLabel, 0, 0, 1, 1);
 
-        sleepPeriodsLabel = new QLabel(settingsGroupBox);
-        sleepPeriodsLabel->setObjectName("sleepPeriodsLabel");
-        sizePolicy1.setHeightForWidth(sleepPeriodsLabel->sizePolicy().hasHeightForWidth());
-        sleepPeriodsLabel->setSizePolicy(sizePolicy1);
+        advancedSettingsButton = new QPushButton(settingsGroupBox);
+        advancedSettingsButton->setObjectName("advancedSettingsButton");
+        sizePolicy1.setHeightForWidth(advancedSettingsButton->sizePolicy().hasHeightForWidth());
+        advancedSettingsButton->setSizePolicy(sizePolicy1);
 
-        gridLayout_8->addWidget(sleepPeriodsLabel, 1, 4, 1, 1);
+        gridLayout_8->addWidget(advancedSettingsButton, 0, 9, 1, 1);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName("horizontalLayout_2");
+        timeOffsetSpinBox = new QSpinBox(settingsGroupBox);
+        timeOffsetSpinBox->setObjectName("timeOffsetSpinBox");
+        sizePolicy1.setHeightForWidth(timeOffsetSpinBox->sizePolicy().hasHeightForWidth());
+        timeOffsetSpinBox->setSizePolicy(sizePolicy1);
+        timeOffsetSpinBox->setMinimum(-12);
+        timeOffsetSpinBox->setMaximum(14);
+
+        horizontalLayout_2->addWidget(timeOffsetSpinBox);
+
+        UtcOffsetApplyButton = new QPushButton(settingsGroupBox);
+        UtcOffsetApplyButton->setObjectName("UtcOffsetApplyButton");
+
+        horizontalLayout_2->addWidget(UtcOffsetApplyButton);
+
+
+        gridLayout_8->addLayout(horizontalLayout_2, 1, 2, 1, 2);
 
 
         gridLayout_5->addWidget(settingsGroupBox, 1, 0, 1, 2);
@@ -461,12 +474,12 @@ public:
         analysisGroupBox->setSizePolicy(sizePolicy1);
         horizontalLayout = new QHBoxLayout(analysisGroupBox);
         horizontalLayout->setObjectName("horizontalLayout");
-        statusLabel = new QLabel(analysisGroupBox);
-        statusLabel->setObjectName("statusLabel");
-        sizePolicy1.setHeightForWidth(statusLabel->sizePolicy().hasHeightForWidth());
-        statusLabel->setSizePolicy(sizePolicy1);
+        analysisStatusLabel = new QLabel(analysisGroupBox);
+        analysisStatusLabel->setObjectName("analysisStatusLabel");
+        sizePolicy1.setHeightForWidth(analysisStatusLabel->sizePolicy().hasHeightForWidth());
+        analysisStatusLabel->setSizePolicy(sizePolicy1);
 
-        horizontalLayout->addWidget(statusLabel);
+        horizontalLayout->addWidget(analysisStatusLabel);
 
         analyzeButton = new QPushButton(analysisGroupBox);
         analyzeButton->setObjectName("analyzeButton");
@@ -546,16 +559,13 @@ public:
     {
         NappaDialog->setWindowTitle(QCoreApplication::translate("NappaDialog", "NAPPA Infant Sleep Analyzer", nullptr));
         informationGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Information", nullptr));
-        label_4->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><img src=\":/logo/baba-logo.png\"/></p></body></html>", nullptr));
         appVersionLabel->setText(QCoreApplication::translate("NappaDialog", "App version: x.x", nullptr));
+        label_4->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><img src=\":/logo/baba-logo.png\"/></p></body></html>", nullptr));
+        appStatusLabel->setText(QCoreApplication::translate("NappaDialog", "App status:", nullptr));
 #if QT_CONFIG(tooltip)
         githubLabel->setToolTip(QCoreApplication::translate("NappaDialog", "Please visit the github repository! Propose bug fixes/new features/improvements.", nullptr));
 #endif // QT_CONFIG(tooltip)
         githubLabel->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><a href=\"https://github.com/matiashaggman/NAPPA-ISA\"><span style=\" text-decoration: underline; color:#007af4;\">Github</span></a></p></body></html>", nullptr));
-#if QT_CONFIG(tooltip)
-        pluginVersionLabel->setToolTip(QCoreApplication::translate("NappaDialog", "NAPPA plugin allows real-time feature updates for the application.", nullptr));
-#endif // QT_CONFIG(tooltip)
-        pluginVersionLabel->setText(QCoreApplication::translate("NappaDialog", "Plugin version: x.x", nullptr));
         dataVisualizationGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Data visualization", nullptr));
         sleepMainGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Sleep", nullptr));
         discreteHypnogramMainBox->setText(QCoreApplication::translate("NappaDialog", "Discrete hypnogram", nullptr));
@@ -585,22 +595,23 @@ public:
         positionSubsqBox->setText(QCoreApplication::translate("NappaDialog", "Position", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("NappaDialog", "Subsequent pages", nullptr));
         settingsGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Settings", nullptr));
-        startTimeLabel->setText(QCoreApplication::translate("NappaDialog", "Start time", nullptr));
         durationLabel->setText(QCoreApplication::translate("NappaDialog", "0 h", nullptr));
-        selectPeriodsButton->setText(QCoreApplication::translate("NappaDialog", "Enter sleep periods", nullptr));
-        durationTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Duration", nullptr));
-        utcOffsetLabel->setText(QCoreApplication::translate("NappaDialog", "UTC offset", nullptr));
-        endTimeLabel->setText(QCoreApplication::translate("NappaDialog", "End time", nullptr));
-        advancedSettingsButton->setText(QCoreApplication::translate("NappaDialog", "Advanced settings", nullptr));
-        endTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
-        startTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
-        sleepPeriodsTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Sleep periods", nullptr));
 #if QT_CONFIG(tooltip)
         sleepPeriodsLabel->setToolTip(QCoreApplication::translate("NappaDialog", "Number of automatically inferred sleeping periods.", nullptr));
 #endif // QT_CONFIG(tooltip)
         sleepPeriodsLabel->setText(QCoreApplication::translate("NappaDialog", "0", nullptr));
+        endTimeLabel->setText(QCoreApplication::translate("NappaDialog", "End time", nullptr));
+        endTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
+        selectPeriodsButton->setText(QCoreApplication::translate("NappaDialog", "Enter sleep periods", nullptr));
+        durationTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Duration", nullptr));
+        utcOffsetLabel->setText(QCoreApplication::translate("NappaDialog", "UTC offset", nullptr));
+        sleepPeriodsTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Sleep periods", nullptr));
+        startTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
+        startTimeLabel->setText(QCoreApplication::translate("NappaDialog", "Start time", nullptr));
+        advancedSettingsButton->setText(QCoreApplication::translate("NappaDialog", "Advanced settings", nullptr));
+        UtcOffsetApplyButton->setText(QCoreApplication::translate("NappaDialog", "apply", nullptr));
         analysisGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Analysis", nullptr));
-        statusLabel->setText(QCoreApplication::translate("NappaDialog", "Status: awaiting user input (drop zip file anywhere)", nullptr));
+        analysisStatusLabel->setText(QCoreApplication::translate("NappaDialog", "Status: awaiting user input (drop zip file anywhere)", nullptr));
         analyzeButton->setText(QCoreApplication::translate("NappaDialog", "Analyze", nullptr));
         dataGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Data", nullptr));
 #if QT_CONFIG(tooltip)
@@ -623,4 +634,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // MAIN_WINDOWJQKIYT_H
+#endif // MAIN_WINDOWACEBWG_H

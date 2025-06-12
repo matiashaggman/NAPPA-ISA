@@ -14,7 +14,6 @@
 #include <QNetworkRequest>
 #include <QDragEnterEvent>  
 #include <QDropEvent>
-
 #include <QVBoxLayout>
 
 
@@ -29,7 +28,7 @@ NappaMainWindow::NappaMainWindow(QWidget* parent)
     loadSettings(this->settingsPath);
     initUI();
 
-    connect(this, &NappaMainWindow::connectToServer, this, &NappaMainWindow::connectToServer);
+    connect(this, &NappaMainWindow::connectToServerAndFetchUpdate, this, &NappaMainWindow::connectToServerAndFetchUpdate);
     NappaMainWindow::fetchPublicIP();
 }
 
@@ -37,7 +36,7 @@ NappaMainWindow::~NappaMainWindow()
 {
     this->refreshSettings();
 
-	// Reset recording specific settings to null values
+	// Reset recording specific settings to null values at the start of the application:
     QJsonObject data;
     data["sleep_periods"] = QJsonArray();
     this->settings["data"] = data;
@@ -50,17 +49,19 @@ void NappaMainWindow::initUI()
     connect(ui.browseOutputButton, &QPushButton::clicked, this, &NappaMainWindow::onBrowseOutputButtonClicked);
     connect(ui.selectPeriodsButton, &QPushButton::clicked, this, &NappaMainWindow::onSelectPeriodsButtonClicked);
 	connect(ui.advancedSettingsButton, &QPushButton::clicked, this, &NappaMainWindow::onAdvancedSettingsButtonClicked);
+	connect(ui.UtcOffsetApplyButton, &QPushButton::clicked, this, &NappaMainWindow::onUtcOffsetApplyButtonClicked);
 	connect(ui.analyzeButton, &QPushButton::clicked, this, &NappaMainWindow::onAnalyzeButtonClicked);
 
     this->setAcceptDrops(false);
 	ui.browseInputButton->setEnabled(false);
 	ui.browseOutputButton->setEnabled(false);
 	ui.analyzeButton->setEnabled(false);
+	ui.UtcOffsetApplyButton->setEnabled(false);
 	ui.appVersionLabel->setText("App version: " + this->version);
 	
 }
 
-void NappaMainWindow::loadPlugin(const QString& absPath)
+/*void NappaMainWindow::loadPlugin(const QString& absPath)
 {
     pluginLoader_ = new QPluginLoader(absPath, this);
     QObject* obj = pluginLoader_->instance();
@@ -73,7 +74,7 @@ void NappaMainWindow::loadPlugin(const QString& absPath)
         plugin->boot(this);
         ui.pluginVersionLabel->setText("Plugin version: " + QString::number(this->plugin->version(), 'f', 1));
     }
-}
+}*/
 
 void NappaMainWindow::dragEnterEvent(QDragEnterEvent* event) {
     if (event->mimeData()->hasUrls()) {
@@ -101,17 +102,17 @@ void NappaMainWindow::onAdvancedSettingsButtonClicked() {
 
     SettingsWindow settingsWindow(this, this->settings);
 
-    if (plugin)
-        plugin->buildSettingsPage(&settingsWindow, settings);
+    //if (plugin)
+    //    plugin->buildSettingsPage(&settingsWindow, settings);
 
     if (settingsWindow.exec() == QDialog::Accepted) {
 
-        QJsonObject pluginSettings;
+        //QJsonObject pluginSettings;
 
-        if (plugin) {
-            plugin->collectSettings(&settingsWindow, pluginSettings);
-            this->settings["plugin"] = pluginSettings;
-        }
+        //if (plugin) {
+        //    plugin->collectSettings(&settingsWindow, pluginSettings);
+        //    this->settings["plugin"] = pluginSettings;
+        //}
 
         this->settings["report"] = settingsWindow.refreshSettings()["report"];
 		
@@ -193,13 +194,23 @@ void NappaMainWindow::onSelectPeriodsButtonClicked() {
                 "if you wish to manually enter the sleep periods.");
         }
         ui.sleepPeriodsLabel->setText(QString::number(selectedPeriods.size()));
+        QDateTime startDT = QDateTime::fromString(selectedPeriods[0].first, "yyyy-MM-dd HH:mm:ss");
+        QDateTime endDT = QDateTime::fromString(selectedPeriods[selectedPeriods.size() - 1].second, "yyyy-MM-dd HH:mm:ss");
+        
+		ui.startTime->setDateTime(startDT);
+		ui.endTime->setDateTime(endDT);
         //this->saveSettings(this->settingsPath);
     }
 }
 
+void NappaMainWindow::onUtcOffsetApplyButtonClicked()
+{
+    this->importRecording();
+}
+
 void NappaMainWindow::onAnalyzeButtonClicked()
 {
-    ui.statusLabel->setText("Analyzing sleep recording...");
+    ui.analysisStatusLabel->setText("Status: Analyzing sleep recording...");
     this->refreshSettings();
     this->saveSettings(this->settingsPath);
 	ui.analyzeButton->setEnabled(false);
@@ -221,20 +232,20 @@ void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
 	//QMessageBox::information(this, "Status Update", status);
 
 	if (statusCode == STATUS_USER_CONNECTED) {
-		ui.statusLabel->setText("Connected to server.");
+		ui.appStatusLabel->setText("App status: Connected to server.");
 		this->setAcceptDrops(true);
 		ui.browseInputButton->setEnabled(true);
 		ui.browseOutputButton->setEnabled(true);
 	}
-    else if (statusCode == STATUS_USER_PLUGIN_SUCCESS) {
-		this->loadPlugin(msg);
-    }
-    else if (statusCode == STATUS_USER_PLUGIN_ERROR) {
-		QMessageBox::critical(this, "Plugin error", "Failed to load plugin. Some features might be missing. Error:"
-			"\n\n" + msg);
-    }
+  //  else if (statusCode == STATUS_USER_PLUGIN_SUCCESS) {
+		//this->loadPlugin(msg);
+  //  }
+  //  else if (statusCode == STATUS_USER_PLUGIN_ERROR) {
+		//QMessageBox::critical(this, "Plugin error", "Failed to load plugin. Some features might be missing. Error:"
+		//	"\n\n" + msg);
+  //  }
     else if (statusCode == STATUS_USER_CONNECT_ERROR) {
-        ui.statusLabel->setText("Connection error.");
+        ui.appStatusLabel->setText("App status: Connection error.");
 		QMessageBox::critical(nullptr, "Error", "Failed to connect to server: " + msg);
         this->setAcceptDrops(false);
         ui.browseInputButton->setEnabled(false);
@@ -242,12 +253,12 @@ void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
         ui.analyzeButton->setEnabled(false);
     }
 	else if (statusCode == STATUS_IMPORT_SUCCESS) {
-		ui.statusLabel->setText("Recording imported successfully.");
+		ui.analysisStatusLabel->setText("Status: Recording imported successfully.");
         this->setEnabled(true);
 		this->ui.analyzeButton->setEnabled(true);
 	}
 	else if (statusCode == STATUS_IMPORT_ERROR) {
-		ui.statusLabel->setText("Import error. ");
+		ui.analysisStatusLabel->setText("Status: Import error. ");
 		QMessageBox::critical(nullptr, "Error", "Failed to import recording:\n" + msg);
         this->setEnabled(true);
 		this->ui.analyzeButton->setEnabled(false);
@@ -257,12 +268,12 @@ void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
 		this->ui.outputFile->setText("");
 	}
 	else if (statusCode == STATUS_ANALYZE_ERROR) {
-		ui.statusLabel->setText("Analysis error.");
+		ui.analysisStatusLabel->setText("Status: Analysis error.");
 		QMessageBox::critical(nullptr, "Error", "Failed to analyze recording: " + msg);
 		ui.analyzeButton->setEnabled(true);
 	}
 	else if (statusCode == STATUS_ANALYZE_SUCCESS) {
-		ui.statusLabel->setText("Analysis finished successfully.");
+		ui.analysisStatusLabel->setText("Status: Analysis finished successfully.");
 		QMessageBox::information(nullptr, "Success", "Analysis finished successfully. Output saved to:\n\n"
 			+ this->ui.outputFile->text());
 		ui.analyzeButton->setEnabled(true);
@@ -308,15 +319,14 @@ void NappaMainWindow::onImportFinished(const QJsonObject& response)
         QDateTime startDT = QDateTime::fromString(periods[0].first, "yyyy-MM-dd HH:mm:ss");
         QDateTime endDT = QDateTime::fromString(periods[periods.size() - 1].second, "yyyy-MM-dd HH:mm:ss");
 
-		ui.startTime->setDate(startDT.date());
-		ui.endTime->setDate(endDT.date());
-        ui.startTime->setTime(startDT.time());
-        ui.endTime->setTime(endDT.time());
+		ui.startTime->setDateTime(startDT);
+		ui.endTime->setDateTime(endDT);
 
 		ui.startTime->setEnabled(true);
 		ui.endTime->setEnabled(true);
         ui.analyzeButton->setEnabled(true);
-        
+		ui.UtcOffsetApplyButton->setEnabled(true);
+
 		this->refreshSettings();
 		this->saveSettings(this->settingsPath);
 	}
@@ -324,7 +334,7 @@ void NappaMainWindow::onImportFinished(const QJsonObject& response)
 
 void NappaMainWindow::importRecording()
 {
-    ui.statusLabel->setText("Importing sleep recording...");
+    ui.analysisStatusLabel->setText("Status: Importing sleep recording...");
     this->setEnabled(false);
     this->refreshSettings();
     this->saveSettings(this->settingsPath);
@@ -526,10 +536,10 @@ void NappaMainWindow::fetchPublicIP() {
     connect(manager, &QNetworkAccessManager::finished, this, [this](QNetworkReply* reply) {
         if (reply->error() == QNetworkReply::NoError) {
             QString fetchedIP = QString(reply->readAll()).trimmed();
-            emit connectToServer(fetchedIP);
+            emit connectToServerAndFetchUpdate(fetchedIP);
         }
         else {
-            emit connectToServer("No-ip");
+            emit connectToServerAndFetchUpdate("No-ip");
         }
         reply->deleteLater();
         });
@@ -538,18 +548,35 @@ void NappaMainWindow::fetchPublicIP() {
 	return;
 }
 
-void NappaMainWindow::connectToServer(const QString& ownIp) {
+void NappaMainWindow::onUpdateRequestFinished(const QJsonObject& response) {
+    if (response.contains("version")) {
+		auto latest_version = response["version"].toDouble();
+        if (latest_version > this->version.toDouble()) {
+            QMessageBox::information(this, "Update available", "A new version of ISA is available: " + QString::number(latest_version, 'f', 1) 
+                + ". Please visit the github repository to obtain the latest version.");
+
+            ui.appStatusLabel->setText("App status: Update available. Download here:");
+            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 1) + " (outdated)");
+        }
+        else {
+            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 1) + " (latest)");
+		}
+    }
+}
+
+void NappaMainWindow::connectToServerAndFetchUpdate(const QString& ownIp) {
 
     this->publicIP = ownIp;
-    this->userData["os_version"] = QSysInfo::prettyProductName();
-    this->userData["app_version"] = this->version;
-    this->userData["ip"] = this->publicIP;
+    this->userData["os_version"]    = QSysInfo::prettyProductName();
+    this->userData["app_version"]   = this->version;
+    this->userData["ip"]            = this->publicIP;
 
     ThreadWorker* worker = new ThreadWorker(this, "", "", this->settingsPath,
         this->userData, ThreadWorker::Start);
     connect(worker, &ThreadWorker::finished, worker, &QObject::deleteLater);
     connect(worker, &ThreadWorker::onUpdateStatus, this, &NappaMainWindow::onUpdateStatus);
+	connect(worker, &ThreadWorker::onUpdateRequestFinished, this, &NappaMainWindow::onUpdateRequestFinished);
     worker->start();
 
-	this->ui.statusLabel->setText("Connecting to server...");
+	ui.appStatusLabel->setText("App status: Connecting to server...");
 }

@@ -1,20 +1,20 @@
 import requests
 import tempfile
 import os
+import json
 import zipfile
 import traceback
-from datetime import datetime
-
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.concurrency import run_in_threadpool
-
 import pandas as pd
 
-from isa.core.io import load_settings, load_data
-from isa.core.wear import detect_wear, detect_wear_blocks
+from datetime import datetime
 
-from isa.analysis import nappa_analysis
+from fastapi             import FastAPI, UploadFile, File
+from fastapi.responses   import FileResponse, JSONResponse
+from fastapi.concurrency import run_in_threadpool
+
+from isa.core.io    import load_settings, load_data
+from isa.core.wear  import detect_wear, detect_wear_blocks
+from isa.analysis   import nappa_analysis
 
 
 app = FastAPI()
@@ -39,8 +39,9 @@ def get_ip_location(ip):
 async def startup_info(payload: dict):
 
     try:
-
         ip = payload.get("ip")
+        if not ip:
+            ip = payload.get("IP")          
         location = None
         if ip:
             location = get_ip_location(ip)
@@ -52,28 +53,34 @@ async def startup_info(payload: dict):
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        log_df = pd.read_csv("log.csv")
+        log_df = pd.read_csv("isa/client/log.csv")
         if log_df.empty:
             log_df = pd.DataFrame(columns=['time', 'ip', 'location', 'app_version', 'machine_name', 'os_version'])
         
-        location = payload.get("location", "Unknown")
-        app_version = payload.get("app_version", "Unknown")
-        machine_name = payload.get("machine_name", "Unknown")
-        os_version = payload.get("os_version", "Unknown")
-        log_row = {'time':current_time, 'ip':ip, 'location': location,
-        'app_version':app_version, 'machine_name':machine_name, 
-        'os_version':os_version}
+        location        = payload.get("location", "Unknown")
+        app_version     = payload.get("app_version", "Unknown")
+        machine_name    = payload.get("machine_name", "Unknown")
+        os_version      = payload.get("os_version", "Unknown")
+
+        log_row = {'time':current_time, 'ip':ip, 'location': location, 'app_version':app_version, 'machine_name':machine_name, 'os_version':os_version}
 
         print(f'User connected with payload: f{log_row}')
 
         log_df.loc[len(log_df)] = log_row
-        log_df.to_csv("log.csv", index=False)
+        log_df.to_csv("isa/client/log.csv", index=False)
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(f"Error in startup_info: {str(e)}\n{traceback_str}")
 
-    return {"status": "received"}
+    with open("isa/client/info.json", 'r') as file:
+        client_info = json.load(file)
+        
+    json_response = {"status": "success"}
+    json_response.update(client_info)
+    return json_response
 
+
+# Deprecated since version 1.5, this is now legacy code.
 @app.get("/downloadplugin", response_class=FileResponse)
 async def download_plugin():
     """
@@ -82,7 +89,7 @@ async def download_plugin():
     FileResponse: the NAPPA plugin dll.
     """
     return FileResponse(
-        "NappaPlugin.dll",
+        "isa/client/NappaPlugin.dll",
         media_type="application/octet-stream",
         filename="NappaPlugin.dll"
     )
@@ -127,14 +134,13 @@ async def import_recording(
         parsed_settings = load_settings(settings_path)
         time_offset = parsed_settings['data']['time_offset']
 
-        sleepRecording = load_data(tempfolder, time_offset)
-        if sleepRecording.duration > pd.Timedelta(days=1):
-            wear_idx = detect_wear(sleepRecording.features.loc[:, 'activity']) #type:ignore
+        sleep_recording = load_data(tempfolder, time_offset)
+        if sleep_recording.duration > pd.Timedelta(days=1):
+            wear_idx = detect_wear(sleep_recording.features.loc[:, 'activity']) #type:ignore
             parsed_settings['data']['sleep_periods'] = detect_wear_blocks(wear_idx)
         else:
-            wear_idx = pd.Series([True for i in range(len(sleepRecording))],
-                                  index=sleepRecording.features.index, name='wear')
-            parsed_settings['data']['sleep_periods'] = [[sleepRecording.start.strftime("%Y-%m-%d %H:%M:%S"), sleepRecording.end.strftime("%Y-%m-%d %H:%M:%S")]]
+            wear_idx = pd.Series([True for i in range(len(sleep_recording))], index=sleep_recording.features.index, name='wear')
+            parsed_settings['data']['sleep_periods'] = [[sleep_recording.start.strftime("%Y-%m-%d %H:%M:%S"), sleep_recording.end.strftime("%Y-%m-%d %H:%M:%S")]]
 
     except Exception as e:
         traceback_str = traceback.format_exc()
@@ -142,7 +148,7 @@ async def import_recording(
             status_code=500,
             content={"error": str(e), "traceback": traceback_str}
         )
-    return {"sleep_periods": parsed_settings["data"]["sleep_periods"], "duration": str(sleepRecording.duration)} #type:ignore
+    return {"sleep_periods": parsed_settings["data"]["sleep_periods"], "duration": str(sleep_recording.duration)} #type:ignore
 
 
 @app.post("/analysis")
@@ -194,12 +200,12 @@ async def nappa_online_analysis(
         parsed_settings = load_settings(settings_path)
         time_offset = parsed_settings['data']['time_offset']
 
-        sleepRecording = load_data(tempfolder, time_offset)
-        wear_idx = detect_wear(sleepRecording.features.loc[:, 'activity']) #type:ignore
+        sleep_recording = load_data(tempfolder, time_offset)
+        wear_idx = detect_wear(sleep_recording.features.loc[:, 'activity']) #type:ignore
 
         await run_in_threadpool(
             nappa_analysis,
-            recording=sleepRecording,
+            recording=sleep_recording,
             wear_idx=wear_idx,
             output_file=output_path,
             tempfolder=tempfolder,

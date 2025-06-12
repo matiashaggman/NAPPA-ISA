@@ -1,9 +1,9 @@
 {
     "data": {
-        "end_time": "2024-11-21 09:02:00",
+        "end_time": "2024-11-21 07:02:00",
         "sleep_periods": [
         ],
-        "start_time": "2024-11-14 21:17:30",
+        "start_time": "2024-11-14 19:17:30",
         "time_offset": 2
     },
     "plugin": {
@@ -15,7 +15,7 @@
         "filtering": {
             "median_filter": true,
             "nonwear": true,
-            "window_size": 11
+            "window_size": 19
         },
         "layout": {
             "auto_page_generation": true,
@@ -39,7 +39,7 @@
             "position": true,
             "respiration_rate": true,
             "sdt": true,
-            "sdt_ci": false,
+            "sdt_ci": true,
             "sleep_statistics": true,
             "summaryfig": "bar"
         },
@@ -49,7 +49,7 @@
             "position": true,
             "respiration_rate": true,
             "sdt": true,
-            "sdt_ci": false,
+            "sdt_ci": true,
             "sleep_statistics": true
         }
     }

@@ -180,11 +180,24 @@ def make_bar_fig(recording, wear_idx, settings):
 
     dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(dateFmt)
     dates_df.index = df.index
-
     df = pd.concat([df, dates_df], axis=1)
     df = df.drop(columns=['p(deep)', 'p(light)', 'p(wake)'])
 
-    df_counts = df.groupby(['date', 'sleep_stage']).size().unstack(fill_value=0)
+    settings_periods = settings['data']['sleep_periods']
+
+    # Collect dataframes for each period in the settings
+    settings_periods_dfs = []
+
+    for (period_start, period_end) in settings_periods:
+        period_start = pd.to_datetime(period_start)
+        period_end = pd.to_datetime(period_end)
+        mask = (df.index >= period_start) & (df.index <= period_end)
+        settings_periods_dfs.append(df[mask])
+
+
+    filtered_df = pd.concat(settings_periods_dfs, axis=0)
+
+    df_counts = filtered_df.groupby(['date', 'sleep_stage']).size().unstack(fill_value=0)
 
     sns.set_theme()
     ax = df_counts.plot(kind='bar', stacked=True, figsize=(10, 5), color=coolwarm_palette)
@@ -193,10 +206,9 @@ def make_bar_fig(recording, wear_idx, settings):
     plt.xticks(rotation=0)
 
     y_labels = ax.get_yticks()
-    # ax.set_yticklabels([f"{int(y*30/(60*60))}" for y in y_labels])
-    y_vals   = np.arange(0, ax.get_ylim()[1] + 1, 30*60)   # 30-min grid
-    y_labels = [f"{int(t/3600)}" for t in y_vals]          # hours
-    ax.set_yticks(y_vals)
+    y_ticks  = y_labels.tolist()
+    y_labels = [f"{int(y*30/(60*60))}" for y in y_labels] # convert to hours
+    ax.set_yticks(y_ticks)
     ax.set_yticklabels(y_labels)
     ax.set_ylabel('Hours')
 
@@ -234,29 +246,51 @@ def make_violin_fig(recording, wear_idx, settings):
         case 3:
             dateFmt = '%d/%m/%y'
         case _:
-           dateFmt =  '%d.%m.'
+           dateFmt  = '%d.%m.'
 
     df = recording.labels[wear_idx]
 
     dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(dateFmt)
     dates_df.index = df.index
-
     df = pd.concat([df, dates_df], axis=1)
 
+    settings_periods = settings['data']['sleep_periods']
+
+    # Collect dataframes for each period in the settings
+    settings_periods_dfs = []
+    for (period_start, period_end) in settings_periods:
+        period_start = pd.to_datetime(period_start)
+        period_end = pd.to_datetime(period_end)
+        mask = (df.index >= period_start) & (df.index <= period_end)
+        settings_periods_dfs.append(df[mask])
+
+    filtered_df = pd.concat(settings_periods_dfs, axis=0)
     fig, ax = plt.subplots(figsize=(10, 5))
 
     sns.violinplot(
-        data=df, x='date',
+        data=filtered_df, x='date',
         y='sdt', inner=None,
         ax=ax, zorder=2,
+        split=True,
         color=coolwarm_palette[0]
     )
+    dmin, dmax = 0.5, 3.5 # original bounds
+    dspan = dmax - dmin
 
-    ax.axhline(y=1.5, color='black', linestyle='--', zorder=3, alpha=1, linewidth=1)
-    ax.axhline(y=2.5, color='black', linestyle='--', zorder=3, alpha=1, linewidth=1)
+    # current axis range after seaborn expanded it
+    ymin, ymax = ax.get_ylim()
+    yspan = ymax - ymin
 
-    ax.set_title('Sleep Stage Distribution Over Time')
-    plt.yticks([1,2,3], ['Deep', 'Light', 'Wake'])
+    # Scaleback
+    def to_axis(v):
+        return ymin + (v - dmin) / dspan * yspan
+
+    for v in (dmin + dspan/3, dmin + 2*dspan/3):
+        ax.axhline(to_axis(v), ls='--', c='black', lw=1, zorder=3)
+
+    ax.set_yticks([to_axis(v) for v in (1, 2, 3)])
+    ax.set_yticklabels(['Deep', 'Light', 'Wake'])
+    ax.set_title('Sleep stages distribution over time')
     plt.xlabel('')
     plt.ylabel('')
     plt.tight_layout()
@@ -278,8 +312,8 @@ def make_main_fig(recording, wear_idx, settings, isMainPage):
     settings  : dict
         The full settings tree; reads visualisation + filtering keys.
     isMainPage : bool
-        True → use the main-page visualisation options.
-        False → use subsequent-page options.
+        True  -> use the main-page visualisation options.
+        False -> use subsequent-page options.
 
     Returns
     -------
@@ -299,7 +333,7 @@ def make_main_fig(recording, wear_idx, settings, isMainPage):
     if settings['report']['filtering']['median_filter']:
         window_size = settings['report']['filtering']['window_size'] * 2
         if window_size % 2 == 0:
-            window_size += 1
+            window_size += 1 # Make sure the window size is alwayus odd
         sdt = medfilt(sdt, kernel_size=window_size)
         sdt_lower = medfilt(sdt_lower, kernel_size=window_size)
         sdt_upper = medfilt(sdt_upper, kernel_size=window_size)

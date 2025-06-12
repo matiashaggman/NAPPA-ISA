@@ -39,8 +39,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="isa\" />
+    <Folder Include="isa\client\" />
     <Folder Include="isa\core\" />
     <Folder Include="nappa\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="isa\client\info.json" />
+    <Content Include="isa\client\log.csv" />
+    <Content Include="isa\client\NappaPlugin.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

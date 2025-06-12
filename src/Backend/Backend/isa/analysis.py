@@ -19,8 +19,11 @@ FEATURE_MEANS = np.array([0.28299643,  0.40674336, 27.51102132,  1.25385624,  1.
 FEATURE_STDS  = np.array([1.08733522,  0.34976171, 46.77687801,  3.8659115,   9.01733374])
 
 
-def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str,
-                    tempfolder:str, settings:dict):
+def nappa_analysis( 
+                recording:SleepRecording,
+                wear_idx:pd.Series,
+                output_file:str,       
+                tempfolder:str, settings:dict):
     """
     End-to-end NAPPA analysis pipeline.
 
@@ -33,7 +36,7 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
     3.  Slice the `recording` to *start..end* defined in `settings['data']`;
         apply global z-score scaling to the features.
     4.  Run the classifier and obtain sleep-stage probabilities.
-    5.  Compute sleep-depth trend **and 95 % CI** via
+    5.  Compute sleep-depth trend ** CI** via
         `SleepDepthTrend`, then attach all labels to a new
         `SleepRecording` instance (`analyzedRecording`).
     6.  Generate the PDF report (main page + sub-pages).  
@@ -44,7 +47,6 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
         * /<temp>/output.csv (feature + label table)  
         * zero or more PNG figures
     8.  Pack selected outputs into *output_file* (ZIP).
-    9.  Emit human-readable progress through *status_callback* if supplied.
 
     Parameters
     ----------
@@ -67,11 +69,6 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
     -------
     None
         Results are written to *output_file* as a ZIP archive.
-
-    Raises
-    ------
-    RuntimeError
-        If classifier weights are missing or PDF generation fails.
     """
 
     init_plot_style()
@@ -90,7 +87,6 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
     scaler = StandardScaler(method='global')
 
     print("Status: setting up classifier...")
-
     model = None
     if not settings['report']['classifier_input']['accelerometer_only']:
         model = NappaSleepNet().load('weights/weights_full.pth')
@@ -100,27 +96,25 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
         model = NappaSleepNet(num_features=1).load('weights/weights_acc.pth')
         x = features.loc[:, 'activity'].to_numpy().reshape(-1, 1)
         x = scaler(data=x, with_mean=FEATURE_MEANS[0], with_std=FEATURE_STDS[0])
-
-    x = torch.tensor(x, dtype=torch.float)
-
     print("Status: running classifier...")
 
+    x = torch.tensor(x, dtype=torch.float)
     y = model.predict(x).numpy()
     [sdt, lowerlim, upperlim] = SleepDepthTrend(y[:, 1:])
 
-    labels = pd.DataFrame(y, columns=['sleep_stage', 'p(deep)', 'p(light)', 'p(wake)'], index=features.index)
-    labels['sleep_stage'] = labels['sleep_stage'].replace({0:'deep', 1:'light', 2:'wake'})
-    labels['sdt'] = pd.Series(sdt, index=features.index)
-    labels['sdt_ci_lower'] = pd.Series(lowerlim, index=features.index)
-    labels['sdt_ci_upper'] = pd.Series(upperlim, index=features.index)
+    labels_df = pd.DataFrame(y, columns=['sleep_stage', 'p(deep)', 'p(light)', 'p(wake)'], index=features.index)
+    labels_df['sleep_stage'] = labels_df['sleep_stage'].replace({0:'deep', 1:'light', 2:'wake'})
+    labels_df['sdt'] = pd.Series(sdt, index=features.index)
+    labels_df['sdt_ci_lower'] = pd.Series(lowerlim, index=features.index)
+    labels_df['sdt_ci_upper'] = pd.Series(upperlim, index=features.index)
 
-    analyzedRecording = SleepRecording(features, labels, serial_number=recording.serial_number)
+    analyzed_recording = SleepRecording(features, labels_df, serial_number=recording.serial_number)
 
     zf = zipfile.ZipFile(output_file, mode="w")
     
     if settings['report']['output_formats']['pdf']:
         pdf = generate_pages_parallel(
-                recording=analyzedRecording,
+                recording=analyzed_recording,
                 settings=settings,
                 wear_idx=wear_idx,
                 tmp_dir=tempfolder
@@ -128,11 +122,11 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
 
         print("Status: writing .pdf output file...")
 
-        sn = analyzedRecording.serial_number if analyzedRecording.serial_number else ""
+        sn = analyzed_recording.serial_number if analyzed_recording.serial_number else ""
         if sn == "":
-            fname = "NAPPA_REPORT_" + str(analyzedRecording.start.date()) + ".pdf" #type:ignore
+            fname = "NAPPA_REPORT_" + str(analyzed_recording.start.date()) + ".pdf" #type:ignore
         else:
-            fname = "NAPPA_REPORT_" + sn + "_" + str(analyzedRecording.start.date()) + ".pdf" #type:ignore
+            fname = "NAPPA_REPORT_" + sn + "_" + str(analyzed_recording.start.date()) + ".pdf" #type:ignore
         output = os.path.join(tempfolder, fname) 
 
         pdf.output(output)
@@ -142,7 +136,7 @@ def nappa_analysis(recording:SleepRecording, wear_idx:pd.Series, output_file:str
         print("Status: writing .csv output file...")
     
         output = os.path.join(tempfolder, 'output.csv')
-        analyzedRecording.save(output)
+        analyzed_recording.save(output)
         zf.write(output, os.path.basename(output))
 
     if settings['report']['output_formats']['figures']:

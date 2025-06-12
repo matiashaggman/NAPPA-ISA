@@ -17,19 +17,18 @@ void ThreadWorker::run()
     if (this->callType == Analysis)
     {
         this->uploadAndAnalyzeRequest();
-
     }
     else if (this->callType == Import) {
         this->uploadAndImportRequest();
     }
     else if (this->callType == Start) {
-        this->startServerRequest();
-		this->downloadPluginRequest();
+        this->startServerAndUpdateRequest();
+		//this->downloadPluginRequest();
 
     }
 }
 
-void ThreadWorker::startServerRequest()
+void ThreadWorker::startServerAndUpdateRequest()
 {   
     QNetworkRequest request(this->startupUrl);
 
@@ -45,7 +44,15 @@ void ThreadWorker::startServerRequest()
     loop.exec();
 
     if (reply->error() == QNetworkReply::NoError) {
-		emit onUpdateStatus(STATUS_USER_CONNECTED);
+        QByteArray response = reply->readAll();
+        QJsonParseError parseError;
+        QJsonDocument responseDoc = QJsonDocument::fromJson(response, &parseError);
+
+        if (parseError.error == QJsonParseError::NoError && responseDoc.isObject()) {
+            QJsonObject responseObj = responseDoc.object();
+            emit onUpdateStatus(STATUS_USER_CONNECTED);
+			emit onUpdateRequestFinished(responseObj);
+        }
     }
     else {
 		emit onUpdateStatus(STATUS_USER_CONNECT_ERROR, reply->errorString());
@@ -54,7 +61,7 @@ void ThreadWorker::startServerRequest()
     reply->deleteLater();
 }
 
-void ThreadWorker::downloadPluginRequest() {
+/*void ThreadWorker::downloadPluginRequest() {
 	QNetworkRequest request(this->pluginUrl);
 	QNetworkAccessManager* manager = new QNetworkAccessManager();
 	QNetworkReply* reply = manager->get(request);
@@ -78,7 +85,7 @@ void ThreadWorker::downloadPluginRequest() {
 		emit onUpdateStatus(STATUS_USER_PLUGIN_ERROR, reply->errorString());
 	}
 	reply->deleteLater();
-}
+}*/
 
 void ThreadWorker::uploadAndImportRequest() {
     QNetworkRequest request(this->importUrl);

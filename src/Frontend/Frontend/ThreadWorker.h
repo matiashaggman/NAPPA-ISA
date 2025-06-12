@@ -7,8 +7,8 @@
 #define STATUS_USER_CONNECTED 1
 #define STATUS_USER_CONNECT_ERROR -1
 
-#define STATUS_USER_PLUGIN_SUCCESS 2
-#define STATUS_USER_PLUGIN_ERROR -2
+//#define STATUS_USER_PLUGIN_SUCCESS 2
+//#define STATUS_USER_PLUGIN_ERROR -2
 
 #define STATUS_IMPORT_SUCCESS 3
 #define STATUS_IMPORT_ERROR -3
@@ -39,12 +39,13 @@ public:
 
 signals:  
    void onUpdateStatus(const float statusCode, const QString& msg = QString());
+   void onUpdateRequestFinished(const QJsonObject&);
    void onImportFinished(const QJsonObject&);
    void onAnalyzeFinished();
 
 private:  
-   void startServerRequest();
-   void downloadPluginRequest();
+   void startServerAndUpdateRequest();
+   //void downloadPluginRequest(); // Deprecated as of version 1.5, 2025-06-12
    void uploadAndImportRequest();
    void uploadAndAnalyzeRequest();
 
@@ -56,7 +57,7 @@ private:
 
    const QString serverUrl = "https://8000-01jshk18q2p91hqcm4arhwcffb.cloudspaces.litng.ai";  
    const QUrl startupUrl = QUrl(serverUrl + "/startup");
-   const QUrl pluginUrl = QUrl(serverUrl + "/downloadplugin");
+   //const QUrl pluginUrl = QUrl(serverUrl + "/downloadplugin");
    const QUrl importUrl = QUrl(serverUrl + "/import");
    const QUrl analysisUrl = QUrl(serverUrl + "/analysis");
 };
