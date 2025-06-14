@@ -69,16 +69,9 @@
 ## Project Structure
 
 ### Client side
-
 * **`bin/NAPPA-ISA Client.exe`** – Windows GUI application (portable build).
-* **`src/Frontend/`** – Visual Studio 2022 project sources.
-
-| Path                                                      | What it contains                                                                                                                                          |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`src/Frontend/Common/`**                                | Header-only shared code & `inAppPlugin.h` (plug-in extension API).                                                                                        |
-| **`src/Frontend/Frontend/`**                              | Main GUI project<br>• `main.cpp`, `NappaMainWindow.*`, `SettingsWindow.*`<br>• *.ui* files from Qt Designer<br>• `Frontend.vcxproj` plus icons/resources. |
-| **`src/Frontend/NappaPlugin/`**                           | Example plug-in project (`NappaPlugin.dll`, `plugin.json`) showing how to extend the app at run-time.                                                     |
-| **`src/Frontend/`** – `build_pc.bat` / `build_laptop.bat` | One-click scripts that run **windeployqt**, package the binaries, and zip them for distribution.                                                          |                                                    
+- **`src/Frontend/Frontend/`**: Qt based GUI client application project files (Visual C++).
+- **`src/Frontend/`** – `build.bat`: One-click scripts that run **windeployqt**, package the compiled binaries, and zip them for distribution.                                                          |                                                    
 
 
 ### Server side (lightning.ai based)
@@ -86,9 +79,9 @@
 - **`src/Backend/isa/analysis.py`**: Entry point
 -  **`src/Backend/isa/core`**: Utilities for report generation & analysis
 - **`src/Backend/nappa/preprocess.py`**: Data preprocessing and scaling functions.  
-- **`src/Backend/nappa/pipeline.py`**: Routines for reading and processing feature files.  
-- **`src/Backend/nappa/objects.py`**: Classes for organizing sensor data.  
-- **`src/Backend/nappa/models.py`**: Deep learning classifier for the sleep depth trend & hypnogram.
+- **`src/Backend/nappa/pipeline.py`**: Routines for reading and processing NAPPA feature files.  
+- **`src/Backend/nappa/objects.py`**: Classes for organizing sensor data into sleep recording objects.  
+- **`src/Backend/nappa/models.py`**: Deep learning (gated recurrent unit) classifier for the sleep depth trend & hypnogram.
 ---
 
 ## License
