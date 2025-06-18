@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'main_windowaCEbwG.ui'
+** Form generated from reading UI file 'main_windowlYpaDI.ui'
 **
 ** Created by: Qt User Interface Compiler version 6.7.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef MAIN_WINDOWACEBWG_H
-#define MAIN_WINDOWACEBWG_H
+#ifndef MAIN_WINDOWLYPADI_H
+#define MAIN_WINDOWLYPADI_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
@@ -35,10 +35,10 @@ public:
     QGridLayout* gridLayout_5;
     QGroupBox* informationGroupBox;
     QGridLayout* gridLayout_4;
-    QLabel* appVersionLabel;
-    QLabel* label_4;
     QLabel* appStatusLabel;
     QLabel* githubLabel;
+    QLabel* label_4;
+    QLabel* appVersionLabel;
     QGroupBox* dataVisualizationGroupBox;
     QGridLayout* gridLayout;
     QTabWidget* tabWidget;
@@ -107,7 +107,7 @@ public:
         if (NappaDialog->objectName().isEmpty())
             NappaDialog->setObjectName("NappaDialog");
         NappaDialog->setWindowModality(Qt::WindowModality::NonModal);
-        NappaDialog->resize(778, 518);
+        NappaDialog->resize(804, 518);
         QSizePolicy sizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -135,20 +135,6 @@ public:
         informationGroupBox->setSizePolicy(sizePolicy1);
         gridLayout_4 = new QGridLayout(informationGroupBox);
         gridLayout_4->setObjectName("gridLayout_4");
-        appVersionLabel = new QLabel(informationGroupBox);
-        appVersionLabel->setObjectName("appVersionLabel");
-        sizePolicy1.setHeightForWidth(appVersionLabel->sizePolicy().hasHeightForWidth());
-        appVersionLabel->setSizePolicy(sizePolicy1);
-
-        gridLayout_4->addWidget(appVersionLabel, 1, 0, 1, 1);
-
-        label_4 = new QLabel(informationGroupBox);
-        label_4->setObjectName("label_4");
-        sizePolicy1.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
-        label_4->setSizePolicy(sizePolicy1);
-
-        gridLayout_4->addWidget(label_4, 0, 0, 1, 1);
-
         appStatusLabel = new QLabel(informationGroupBox);
         appStatusLabel->setObjectName("appStatusLabel");
 
@@ -161,6 +147,20 @@ public:
         githubLabel->setOpenExternalLinks(true);
 
         gridLayout_4->addWidget(githubLabel, 2, 1, 1, 1);
+
+        label_4 = new QLabel(informationGroupBox);
+        label_4->setObjectName("label_4");
+        sizePolicy1.setHeightForWidth(label_4->sizePolicy().hasHeightForWidth());
+        label_4->setSizePolicy(sizePolicy1);
+
+        gridLayout_4->addWidget(label_4, 0, 0, 1, 1);
+
+        appVersionLabel = new QLabel(informationGroupBox);
+        appVersionLabel->setObjectName("appVersionLabel");
+        sizePolicy1.setHeightForWidth(appVersionLabel->sizePolicy().hasHeightForWidth());
+        appVersionLabel->setSizePolicy(sizePolicy1);
+
+        gridLayout_4->addWidget(appVersionLabel, 1, 0, 1, 1);
 
 
         gridLayout_5->addWidget(informationGroupBox, 0, 0, 1, 1);
@@ -559,13 +559,13 @@ public:
     {
         NappaDialog->setWindowTitle(QCoreApplication::translate("NappaDialog", "NAPPA Infant Sleep Analyzer", nullptr));
         informationGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Information", nullptr));
-        appVersionLabel->setText(QCoreApplication::translate("NappaDialog", "App version: x.x", nullptr));
-        label_4->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><img src=\":/logo/baba-logo.png\"/></p></body></html>", nullptr));
         appStatusLabel->setText(QCoreApplication::translate("NappaDialog", "App status:", nullptr));
 #if QT_CONFIG(tooltip)
         githubLabel->setToolTip(QCoreApplication::translate("NappaDialog", "Please visit the github repository! Propose bug fixes/new features/improvements.", nullptr));
 #endif // QT_CONFIG(tooltip)
         githubLabel->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><a href=\"https://github.com/matiashaggman/NAPPA-ISA\"><span style=\" text-decoration: underline; color:#007af4;\">Github</span></a></p></body></html>", nullptr));
+        label_4->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p><img src=\":/logo/baba-logo.png\"/></p></body></html>", nullptr));
+        appVersionLabel->setText(QCoreApplication::translate("NappaDialog", "App version: x.x", nullptr));
         dataVisualizationGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Data visualization", nullptr));
         sleepMainGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Sleep", nullptr));
         discreteHypnogramMainBox->setText(QCoreApplication::translate("NappaDialog", "Discrete hypnogram", nullptr));
@@ -600,14 +600,14 @@ public:
         sleepPeriodsLabel->setToolTip(QCoreApplication::translate("NappaDialog", "Number of automatically inferred sleeping periods.", nullptr));
 #endif // QT_CONFIG(tooltip)
         sleepPeriodsLabel->setText(QCoreApplication::translate("NappaDialog", "0", nullptr));
-        endTimeLabel->setText(QCoreApplication::translate("NappaDialog", "End time", nullptr));
+        endTimeLabel->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p align=\"center\">End time</p></body></html>", nullptr));
         endTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
         selectPeriodsButton->setText(QCoreApplication::translate("NappaDialog", "Enter sleep periods", nullptr));
-        durationTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Duration", nullptr));
-        utcOffsetLabel->setText(QCoreApplication::translate("NappaDialog", "UTC offset", nullptr));
+        durationTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Total duration", nullptr));
+        utcOffsetLabel->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p align=\"center\">UTC offset</p></body></html>", nullptr));
         sleepPeriodsTitleLabel->setText(QCoreApplication::translate("NappaDialog", "Sleep periods", nullptr));
         startTime->setDisplayFormat(QCoreApplication::translate("NappaDialog", "dd/MM/yyyy HH:mm", nullptr));
-        startTimeLabel->setText(QCoreApplication::translate("NappaDialog", "Start time", nullptr));
+        startTimeLabel->setText(QCoreApplication::translate("NappaDialog", "<html><head/><body><p align=\"center\">Start time</p></body></html>", nullptr));
         advancedSettingsButton->setText(QCoreApplication::translate("NappaDialog", "Advanced settings", nullptr));
         UtcOffsetApplyButton->setText(QCoreApplication::translate("NappaDialog", "apply", nullptr));
         analysisGroupBox->setTitle(QCoreApplication::translate("NappaDialog", "Analysis", nullptr));
@@ -634,4 +634,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // MAIN_WINDOWACEBWG_H
+#endif // MAIN_WINDOWLYPADI_H

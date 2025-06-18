@@ -1,9 +1,9 @@
 {
     "data": {
-        "end_time": "2024-11-21 07:02:00",
+        "end_time": "2025-06-10 09:47:00",
         "sleep_periods": [
         ],
-        "start_time": "2024-11-14 19:17:30",
+        "start_time": "2025-06-06 11:33:00",
         "time_offset": 2
     },
     "plugin": {
@@ -39,7 +39,7 @@
             "position": true,
             "respiration_rate": true,
             "sdt": true,
-            "sdt_ci": true,
+            "sdt_ci": false,
             "sleep_statistics": true,
             "summaryfig": "bar"
         },

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>778</width>
+    <width>804</width>
     <height>518</height>
    </rect>
   </property>
@@ -49,7 +49,14 @@
       <string>Information</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="2" column="2">
+      <item row="2" column="0">
+       <widget class="QLabel" name="appStatusLabel">
+        <property name="text">
+         <string>App status:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
        <widget class="QLabel" name="githubLabel">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
@@ -81,13 +88,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="appStatusLabel">
-        <property name="text">
-         <string>App status:</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="appVersionLabel">
         <property name="sizePolicy">
@@ -98,13 +98,6 @@
         </property>
         <property name="text">
          <string>App version: x.x</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>TextLabel</string>
         </property>
        </widget>
       </item>
@@ -534,7 +527,7 @@ Confidence Interval</string>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>End time</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;End time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -586,7 +579,7 @@ Confidence Interval</string>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Duration</string>
+         <string>Total duration</string>
         </property>
        </widget>
       </item>
@@ -602,7 +595,7 @@ Confidence Interval</string>
          <enum>Qt::LayoutDirection::LeftToRight</enum>
         </property>
         <property name="text">
-         <string>UTC offset</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;UTC offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -671,7 +664,7 @@ Confidence Interval</string>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Start time</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Start time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>

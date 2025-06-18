@@ -90,7 +90,8 @@ void NappaMainWindow::dropEvent(QDropEvent* event) {
     QString inputFile = urls.first().toLocalFile();
     if (!inputFile.isEmpty()) {
         ui.inputFile->setText(inputFile);
-        QString file = QFileInfo(inputFile).baseName();
+        // Use QFileInfo::completeBaseName() to handle filenames with dots and spaces correctly
+        QString file = QFileInfo(inputFile).completeBaseName();
         QString dir = QFileInfo(inputFile).absolutePath();
         QString outputFile = dir + "/" + file + "_analyzed.zip";
         ui.outputFile->setText(outputFile);
@@ -170,6 +171,9 @@ void NappaMainWindow::onSelectPeriodsButtonClicked() {
 
     if (dialog.exec() == QDialog::Accepted) {
         QList<QPair<QString, QString>> selectedPeriods = dialog.periods;
+
+        if (selectedPeriods.isEmpty())
+            return;
 
         QJsonArray newPeriodsArray;
         for (const auto& pair : selectedPeriods) {
@@ -282,20 +286,35 @@ void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
 
 void NappaMainWindow::onImportFinished(const QJsonObject& response)
 {
-	if (response.contains("sleep_periods")) {
-		QJsonArray sleepPeriods = response["sleep_periods"].toArray();
-		QList<QPair<QString, QString>> periods;
-		for (const QJsonValue& val : sleepPeriods) {
-			if (val.isArray()) {
-				QJsonArray pair = val.toArray();
-				if (pair.size() == 2) {
-					QString start = pair[0].toString();
-					QString end = pair[1].toString();
-					periods.append(qMakePair(start, end));
-				}
-			}
-		}
-		// Update settings with new periods
+    if (response.contains("sleep_periods")) {
+        QJsonArray sleepPeriods = response["sleep_periods"].toArray();
+        QList<QPair<QString, QString>> periods;
+        for (const QJsonValue& val : sleepPeriods) {
+            if (val.isArray()) {
+                QJsonArray pair = val.toArray();
+                if (pair.size() == 2) {
+                    QString start = pair[0].toString();
+                    QString end = pair[1].toString();
+                    periods.append(qMakePair(start, end));
+                }
+            }
+        }
+        if (sleepPeriods.isEmpty()) {
+            if (response.contains("start") && response.contains("end")) {
+				// If no sleep periods are found, but start and end times are provided, use them to populate the periods
+                QString start = response["start"].toString();
+                QString end = response["end"].toString();
+                periods.append(qMakePair(start, end));
+                QJsonArray periodsArray;
+                for (const auto& [pStart, pEnd] : periods) {
+                    periodsArray.append(QJsonArray{pStart, pEnd});
+                }
+                sleepPeriods = periodsArray;
+            }
+            QMessageBox::warning(this, "No sleep periods", "No sleep periods found in the recording. Please check the input, the sleep recording may be corrupted.\n\n" 
+                "You can still run the analysis by manually entering each sleep period.");
+        }
+        // Update settings with new periods
         if (this->settings.contains("data") && this->settings["data"].isObject()) {
             QJsonObject dataObject = this->settings.value("data").toObject();
             dataObject["sleep_periods"] = sleepPeriods;
@@ -305,8 +324,8 @@ void NappaMainWindow::onImportFinished(const QJsonObject& response)
             QString duration = response["duration"].toString();
             ui.durationLabel->setText(duration.left(duration.length() - 3));
             // get the days count:
-			QStringList parts = duration.split(" ");
-			QString days = parts[0];
+            QStringList parts = duration.split(" ");
+            QString days = parts[0];
             if (days.toInt() < 1) {
                 ui.selectPeriodsButton->setEnabled(false);
             }
@@ -314,13 +333,17 @@ void NappaMainWindow::onImportFinished(const QJsonObject& response)
                 ui.selectPeriodsButton->setEnabled(true);
             }
         }
-
         ui.sleepPeriodsLabel->setText(QString::number(periods.size()));
         QDateTime startDT = QDateTime::fromString(periods[0].first, "yyyy-MM-dd HH:mm:ss");
         QDateTime endDT = QDateTime::fromString(periods[periods.size() - 1].second, "yyyy-MM-dd HH:mm:ss");
 
-		ui.startTime->setDateTime(startDT);
-		ui.endTime->setDateTime(endDT);
+        ui.startTime->setDateTime(startDT);
+        ui.endTime->setDateTime(endDT);
+        ui.startTimeLabel->setText("Start time\n(automatically inferred)");
+        ui.endTimeLabel->setText("End time\n(automatically inferred)");
+		// center align the labels
+		ui.startTimeLabel->setAlignment(Qt::AlignCenter);
+		ui.endTimeLabel->setAlignment(Qt::AlignCenter);
 
 		ui.startTime->setEnabled(true);
 		ui.endTime->setEnabled(true);
@@ -556,10 +579,10 @@ void NappaMainWindow::onUpdateRequestFinished(const QJsonObject& response) {
                 + ". Please visit the github repository to obtain the latest version.");
 
             ui.appStatusLabel->setText("App status: Update available. Download here:");
-            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 1) + " (outdated)");
+            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 2) + " (outdated)");
         }
         else {
-            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 1) + " (latest)");
+            ui.appVersionLabel->setText("App version: " + QString::number(this->version.toDouble(), 'f', 2) + " (latest)");
 		}
     }
 }
