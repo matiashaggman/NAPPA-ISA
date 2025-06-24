@@ -1,9 +1,9 @@
 {
     "data": {
-        "end_time": "2025-06-10 09:47:00",
+        "end_time": "2025-05-30 08:39:00",
         "sleep_periods": [
         ],
-        "start_time": "2025-06-06 11:33:00",
+        "start_time": "2025-05-23 17:32:30",
         "time_offset": 2
     },
     "plugin": {
@@ -15,7 +15,7 @@
         "filtering": {
             "median_filter": true,
             "nonwear": true,
-            "window_size": 19
+            "window_size": 9
         },
         "layout": {
             "auto_page_generation": true,

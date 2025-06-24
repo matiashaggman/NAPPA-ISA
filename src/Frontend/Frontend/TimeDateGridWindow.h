@@ -10,6 +10,13 @@
 #include <QList>
 #include <QPair>
 #include <QString>
+#include <QCheckBox>
+
+struct PeriodRow {
+    QDateTimeEdit* startEdit;
+    QDateTimeEdit* endEdit;
+    QCheckBox* include;
+};
 
 class TimeDateGridWindow : public QDialog {
     Q_OBJECT
@@ -28,12 +35,13 @@ protected:
 private slots:
 	void onSaveButtonClicked();
     void onAddPeriodClicked();
-    void onDeletePeriodClicked();
+    //void onDeletePeriodClicked();
 
 private:
     void addPeriod(const QString& startString, const QString& endString);
-   
+	void refreshPeriods();
+
     QGridLayout* gridLayout;
-    QList<QPair<QDateTimeEdit*, QDateTimeEdit*>> dateEdits;
+    QList<PeriodRow> dateEdits;
     int rows;
 };

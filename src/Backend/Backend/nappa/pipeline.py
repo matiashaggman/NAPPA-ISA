@@ -4,7 +4,6 @@ import pandas as pd
 
 from nappa.objects import NappaDataset, SleepRecording
 
-
 def read_and_process_hypnogram(hypno_path, cfg):
     
     """

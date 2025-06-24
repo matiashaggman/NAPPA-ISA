@@ -31,8 +31,10 @@ void SettingsWindow::initUI()
 	QDateTime endDT = QDateTime::fromString(end_time, "yyyy-MM-dd HH:mm:ss");
 
     // Compute the difference in hours:
-	int hoursDiff = startDT.secsTo(endDT) / 3600;
+	/*int hoursDiff = startDT.secsTo(endDT) / 3600;
 	if (hoursDiff < 24) {
+        this->settings["report"].toObject()["layout"].toObject()["auto_page_generation"] = true;
+        this->settings["report"].toObject()["layout"].toObject()["multipage"] = false;
 		ui.pageGenerationAutomaticButton->setChecked(true);
 		ui.pageGenerationManualButton->setChecked(false);
 		ui.multipageButton->setChecked(false);
@@ -43,7 +45,7 @@ void SettingsWindow::initUI()
 		ui.pageGenerationAutomaticButton->setEnabled(false);
 		ui.pageGenerationManualButton->setEnabled(false);
 
-	}
+	}*/
 	setFixedSize(size());
 	setWindowIcon(QIcon(":/logo/nappa_icon.png"));
 }

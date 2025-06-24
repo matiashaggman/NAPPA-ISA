@@ -35,7 +35,6 @@
     <Compile Include="nappa\pipeline.py" />
     <Compile Include="nappa\plots.py" />
     <Compile Include="nappa\preprocess.py" />
-    <Compile Include="nappa\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="isa\" />

@@ -55,14 +55,14 @@ async def startup_info(payload: dict):
 
         log_df = pd.read_csv("isa/client/log.csv")
         if log_df.empty:
-            log_df = pd.DataFrame(columns=['time', 'ip', 'location', 'app_version', 'machine_name', 'os_version'])
+            log_df = pd.DataFrame(columns=['time', 'ip', 'location', 'app_version', 'os_version'])
         
         location        = payload.get("location", "Unknown")
         app_version     = payload.get("app_version", "Unknown")
         machine_name    = payload.get("machine_name", "Unknown")
         os_version      = payload.get("os_version", "Unknown")
 
-        log_row = {'time':current_time, 'ip':ip, 'location': location, 'app_version':app_version, 'machine_name':machine_name, 'os_version':os_version}
+        log_row = {'time':current_time, 'ip':ip, 'location': location, 'app_version':app_version, 'os_version':os_version}
 
         print(f'User connected with payload: f{log_row}')
 
@@ -148,7 +148,10 @@ async def import_recording(
             status_code=500,
             content={"error": str(e), "traceback": traceback_str}
         )
-    return {"sleep_periods": parsed_settings["data"]["sleep_periods"], "duration": str(sleep_recording.duration)} #type:ignore
+    return {"sleep_periods" :parsed_settings["data"]["sleep_periods"],
+            "duration"      :str(sleep_recording.duration),
+            "start"         :str(sleep_recording.start),
+            "end"           :str(sleep_recording.end)} #type:ignore
 
 
 @app.post("/analysis")

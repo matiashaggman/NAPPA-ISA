@@ -7,10 +7,8 @@
 #include "TimeDateGridWindow.h"
 #include "SettingsWindow.h"
 
-
 #include <QMainWindow>
 #include <QVector>
-#include <QPluginLoader>
 
 class NappaMainWindow : public QDialog
 {
@@ -39,7 +37,6 @@ protected:
 
 private:
     void initUI();
-	//void loadPlugin(const QString& path);
     void loadSettings(const QString&);
     void refreshSettings();
     void saveSettings(const QString&);
@@ -54,9 +51,7 @@ private:
     QJsonObject userData;
     QString publicIP;
     
-    //QPluginLoader* pluginLoader_{ nullptr };
-    //INappaPlugin* plugin{ nullptr };
 
 	const QString settingsPath = "settings.json";
-	const QString version = "1.51";
+	const QString version = "1.52";
 };

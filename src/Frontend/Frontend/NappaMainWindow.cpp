@@ -61,21 +61,6 @@ void NappaMainWindow::initUI()
 	
 }
 
-/*void NappaMainWindow::loadPlugin(const QString& absPath)
-{
-    pluginLoader_ = new QPluginLoader(absPath, this);
-    QObject* obj = pluginLoader_->instance();
-    plugin = qobject_cast<INappaPlugin*>(obj);
-    if (!plugin) {
-		QMessageBox::critical(this, "Plugin error", "Failed to load plugin. Some features might be missing. Error:"
-            "\n\n" + pluginLoader_->errorString());
-    }
-    else {
-        plugin->boot(this);
-        ui.pluginVersionLabel->setText("Plugin version: " + QString::number(this->plugin->version(), 'f', 1));
-    }
-}*/
-
 void NappaMainWindow::dragEnterEvent(QDragEnterEvent* event) {
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction(); // Accept drag if it's a file
@@ -103,17 +88,7 @@ void NappaMainWindow::onAdvancedSettingsButtonClicked() {
 
     SettingsWindow settingsWindow(this, this->settings);
 
-    //if (plugin)
-    //    plugin->buildSettingsPage(&settingsWindow, settings);
-
     if (settingsWindow.exec() == QDialog::Accepted) {
-
-        //QJsonObject pluginSettings;
-
-        //if (plugin) {
-        //    plugin->collectSettings(&settingsWindow, pluginSettings);
-        //    this->settings["plugin"] = pluginSettings;
-        //}
 
         this->settings["report"] = settingsWindow.refreshSettings()["report"];
 		
@@ -193,9 +168,10 @@ void NappaMainWindow::onSelectPeriodsButtonClicked() {
 		}
 
         if (settings["report"].toObject()["layout"].toObject()["auto_page_generation"].toBool()) {
-			QMessageBox::warning(this, "Page generation", "Warning: Auto page generation is enabled.\n\n"
-                "Please switch page generation automatic -> page generation manual in advanced settings, " 
-                "if you wish to manually enter the sleep periods.");
+			QMessageBox::warning(this, "Page generation",
+                "Warning: Automatic page generation is currently enabled.\n\n"
+                "To prevent your manually defined sleep periods from being overwritten, "
+                "please go to Advanced Settings and switch the page generation mode from Automatic to Manual.");
         }
         ui.sleepPeriodsLabel->setText(QString::number(selectedPeriods.size()));
         QDateTime startDT = QDateTime::fromString(selectedPeriods[0].first, "yyyy-MM-dd HH:mm:ss");
@@ -203,7 +179,7 @@ void NappaMainWindow::onSelectPeriodsButtonClicked() {
         
 		ui.startTime->setDateTime(startDT);
 		ui.endTime->setDateTime(endDT);
-        //this->saveSettings(this->settingsPath);
+        this->saveSettings(this->settingsPath);
     }
 }
 
@@ -233,7 +209,6 @@ void NappaMainWindow::onAnalyzeButtonClicked()
 
 void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
 {
-	//QMessageBox::information(this, "Status Update", status);
 
 	if (statusCode == STATUS_USER_CONNECTED) {
 		ui.appStatusLabel->setText("App status: Connected to server.");
@@ -241,13 +216,6 @@ void NappaMainWindow::onUpdateStatus(const float statusCode, const QString& msg)
 		ui.browseInputButton->setEnabled(true);
 		ui.browseOutputButton->setEnabled(true);
 	}
-  //  else if (statusCode == STATUS_USER_PLUGIN_SUCCESS) {
-		//this->loadPlugin(msg);
-  //  }
-  //  else if (statusCode == STATUS_USER_PLUGIN_ERROR) {
-		//QMessageBox::critical(this, "Plugin error", "Failed to load plugin. Some features might be missing. Error:"
-		//	"\n\n" + msg);
-  //  }
     else if (statusCode == STATUS_USER_CONNECT_ERROR) {
         ui.appStatusLabel->setText("App status: Connection error.");
 		QMessageBox::critical(nullptr, "Error", "Failed to connect to server: " + msg);

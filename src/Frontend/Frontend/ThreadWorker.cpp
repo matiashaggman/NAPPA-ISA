@@ -23,7 +23,6 @@ void ThreadWorker::run()
     }
     else if (this->callType == Start) {
         this->startServerAndUpdateRequest();
-		//this->downloadPluginRequest();
 
     }
 }
@@ -61,31 +60,6 @@ void ThreadWorker::startServerAndUpdateRequest()
     reply->deleteLater();
 }
 
-/*void ThreadWorker::downloadPluginRequest() {
-	QNetworkRequest request(this->pluginUrl);
-	QNetworkAccessManager* manager = new QNetworkAccessManager();
-	QNetworkReply* reply = manager->get(request);
-	reply->setParent(this);
-	QEventLoop loop;
-	connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-	loop.exec();
-	if (reply->error() == QNetworkReply::NoError) {
-		QString pluginPath = QDir::currentPath() + "/NappaPlugin.dll";
-		QFile output(pluginPath);
-		if (output.open(QIODevice::WriteOnly)) {
-			output.write(reply->readAll());
-			output.close();
-			emit onUpdateStatus(STATUS_USER_PLUGIN_SUCCESS, pluginPath);
-		}
-		else {
-			emit onUpdateStatus(STATUS_USER_PLUGIN_ERROR, "Failed to write plugin file.");
-		}
-	}
-	else {
-		emit onUpdateStatus(STATUS_USER_PLUGIN_ERROR, reply->errorString());
-	}
-	reply->deleteLater();
-}*/
 
 void ThreadWorker::uploadAndImportRequest() {
     QNetworkRequest request(this->importUrl);

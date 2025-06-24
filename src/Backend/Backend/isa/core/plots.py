@@ -26,6 +26,19 @@ def init_plot_style():
     })
     return 
 
+def get_x_ticks_formatter(settings):
+    match settings['report']['quality']['date_format']:
+        case 0:
+            date_fmt = '%d.%m.'
+        case 1:
+            date_fmt = '%d/%m'
+        case 2:
+            date_fmt = '%d.%m.%y'
+        case 3:
+            date_fmt = '%d/%m/%y'
+        case _:
+           date_fmt =  '%d.%m.'
+    return date_fmt
 
 def plot_segments(ax, x, y, mask, color, step=False):
     """
@@ -84,10 +97,10 @@ def plot_CI_segments(ax, x, CI, mask, color):
         The color to use for the plotted segments.
     """
     # Convert bool to int to find transitions
-    mask_int = mask.astype(int)
+    mask_int    = mask.astype(int)
     transitions = np.diff(mask_int)
-    start_pts = np.where(transitions == 1)[0] + 1
-    end_pts = np.where(transitions == -1)[0] + 1
+    start_pts   = np.where(transitions == 1)[0] + 1
+    end_pts     = np.where(transitions == -1)[0] + 1
 
     # If the mask starts True at index 0
     if mask_int.iloc[0] == 1:
@@ -164,21 +177,11 @@ def make_bar_fig(recording, wear_idx, settings):
     matplotlib.axes._subplots.AxesSubplot: The Axes object with the bar plot.
     """
 
-    match settings['report']['quality']['date_format']:
-        case 0:
-            dateFmt = '%d.%m.'
-        case 1:
-            dateFmt = '%d/%m'
-        case 2:
-            dateFmt = '%d.%m.%y'
-        case 3:
-            dateFmt = '%d/%m/%y'
-        case _:
-           dateFmt =  '%d.%m.'
+    date_fmt = get_x_ticks_formatter(settings)
 
     df = recording.labels[wear_idx]
 
-    dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(dateFmt)
+    dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(date_fmt)
     dates_df.index = df.index
     df = pd.concat([df, dates_df], axis=1)
     df = df.drop(columns=['p(deep)', 'p(light)', 'p(wake)'])
@@ -236,21 +239,10 @@ def make_violin_fig(recording, wear_idx, settings):
     matplotlib.axes._subplots.AxesSubplot: The Axes object with the violin plot.
     """
 
-    match settings['report']['quality']['date_format']:
-        case 0:
-            dateFmt = '%d.%m.'
-        case 1:
-            dateFmt = '%d/%m'
-        case 2:
-            dateFmt = '%d.%m.%y'
-        case 3:
-            dateFmt = '%d/%m/%y'
-        case _:
-           dateFmt  = '%d.%m.'
-
+    date_fmt = get_x_ticks_formatter(settings)
     df = recording.labels[wear_idx]
 
-    dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(dateFmt)
+    dates_df = pd.to_datetime(pd.Series(df.index.date, name='date')).dt.strftime(date_fmt)
     dates_df.index = df.index
     df = pd.concat([df, dates_df], axis=1)
 
@@ -489,11 +481,8 @@ def make_main_fig(recording, wear_idx, settings, isMainPage):
             date_fmt = mdates.DateFormatter('%H:%M')
 
     ax = plt.gca()
-    if recording.duration <= pd.Timedelta(days=1):
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=12, maxticks=12))
-    else:
-        nt = settings['report']['quality']['x_axis_ticks']
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=nt, maxticks=nt))
+    nt = settings['report']['quality']['x_axis_ticks']
+    ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=nt, maxticks=nt))
     
     ax.xaxis.set_major_formatter(date_fmt)
 

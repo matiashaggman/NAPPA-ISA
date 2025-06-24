@@ -1,9 +1,9 @@
 {
     "data": {
-        "end_time": "2024-11-21 09:02:00",
+        "end_time": "2025-05-30 08:39:00",
         "sleep_periods": [
         ],
-        "start_time": "2024-11-14 21:17:30",
+        "start_time": "2025-05-23 17:32:30",
         "time_offset": 2
     },
     "plugin": {
@@ -30,7 +30,7 @@
             "date_format": 0,
             "dpi": 100,
             "log_scale": true,
-            "x_axis_ticks": 8
+            "x_axis_ticks": 2
         }
     },
     "visualization": {
