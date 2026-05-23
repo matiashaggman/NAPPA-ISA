@@ -1,3 +1,0 @@
-Make sure that the executable file (nappa_isa_ui.exe) and the directories 'templates', 'weights' and the file 'options.json' are all located in the same directory when using the program.
-!IMPORTANT! If the app does not launch, make sure that it is correctly downloaded and not corrupted (size should be over 500mb on disk). 
-Visit https://github.com/matiashaggman/NAPPA-ISA for more information.
