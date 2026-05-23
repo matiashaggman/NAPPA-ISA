@@ -9,6 +9,6 @@ ISA 2.0 has migrated from a standalone Windows executable to a containerized web
 
 1. Navigate to the [deployment URL](https://nappa-infant-sleep-analyzer-808342744282.europe-north1.run.app/).
 2. Log in using your Google credentials.
-3. Import sleep recordings (one or multiple) in zip format, configure report settings & click "Analyze".
+3. Import sleep recordings (one or multiple) in zip format, (optionally) configure report settings & click "Analyze".
 4. Resulting sleep report can be previewed and downloaded after analysis completes.
 ---
